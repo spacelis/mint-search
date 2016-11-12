@@ -26,7 +26,7 @@ import static org.neo4j.helpers.collection.MapUtil.stringMap;
  * two procedures - one for updating indexes, and one for querying by label and
  * the lucene query language.
  */
-public abstract class FullTextIndex
+public abstract class Neo4JProcedure
 {
     // This field declares that we need a GraphDatabaseService
     // as context when any procedure in this class is invoked

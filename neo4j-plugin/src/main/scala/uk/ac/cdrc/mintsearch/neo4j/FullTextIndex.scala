@@ -100,7 +100,7 @@ class FullTextIndex extends Neo4JProcedure {
    * @param propKeys a list of property keys to index, only the ones the node
    *                 actually contains will be added
    */
-  @Procedure("mint.full_index")
+  @Procedure("mint.fulltext_index")
   @PerformsWrites
   def index(
     @Name("nodeId") nodeId: Long,
@@ -117,7 +117,7 @@ class FullTextIndex extends Neo4JProcedure {
     // Index every label (this is just as an example, we could filter which labels to index)
     for (
       label <- node.getLabels().asScala;
-      index = db.index().forNodes(indexName(label.name()), FullTextIndexImpl.FULL_TEXT.asJava)
+      index = db.index().forNodes(indexName(label.name()), FullTextIndex.FULL_TEXT.asJava)
     ) {
 
       // In case the node is indexed before, remove all occurrences of it so
@@ -134,7 +134,7 @@ class FullTextIndex extends Neo4JProcedure {
   private def indexName(label: String) = "label-" + label
 }
 
-object FullTextIndexImpl {
+object FullTextIndex {
   // Only static fields and @Context-annotated fields are allowed in
   // Procedure classes. This static field is the configuration we use
   // to create full-text indexes.
