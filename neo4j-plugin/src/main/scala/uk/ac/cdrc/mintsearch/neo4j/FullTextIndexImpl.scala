@@ -23,7 +23,7 @@ import org.neo4j.procedure.Procedure
  * two procedures - one for updating indexes, and one for querying by label and
  * the lucene query language.
  */
-class FullTextIndexImpl extends FullTextIndex {
+class FullTextIndex extends Neo4JProcedure {
   implicit def toJavaFunction[U, V](f: Function1[U, V]): java.util.function.Function[U, V] = new java.util.function.Function[U, V] {
     override def apply(t: U): V = f(t)
   }
