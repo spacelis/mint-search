@@ -5,6 +5,7 @@ lazy val devDeploySettings = Seq(
   deployTask := {
     val (art, file) = packagedArtifact.in(Compile, packageBin).value
     val remote = "dev_server/plugins"
+    println(s"Copy $file -> $remote")
     s"cp $file $remote" !
   }
 )
