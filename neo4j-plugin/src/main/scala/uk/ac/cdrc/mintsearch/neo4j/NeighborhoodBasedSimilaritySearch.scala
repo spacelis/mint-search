@@ -4,27 +4,23 @@ import scala.language.implicitConversions
 import scala.math._
 import collection.JavaConverters._
 import java.util.stream.{ Stream => JStream }
-import java.util.function.{ Function => JFunction }
 
+import scala.compat.java8.StreamConverters._
 import org.neo4j.graphdb.{ Node, RelationshipType }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
-import org.neo4j.graphdb.index.IndexManager
+import org.neo4j.graphdb.index.{ Index, IndexManager }
 import org.neo4j.procedure.Name
 import org.neo4j.procedure.PerformsWrites
 import org.neo4j.procedure.Procedure
 
-case class SearchHit(nodeId: Long)
 /**
  * This class implements the NEighborhood based Similarity Search
  */
 class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
-  implicit private def toJavaFunction[U, V](f: Function1[U, V]): JFunction[U, V] = new JFunction[U, V] {
-    override def apply(t: U): V = f(t)
-  }
 
   /**
    *
-   * @param label the label name to query by
+   * @param propName the property name for the labels
    * @param query the lucene query, for instance `name:Brook*` to
    *              search by property `name` and find any value starting
    *              with `Brook`. Please refer to the Lucene Query Parser
@@ -34,10 +30,13 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
   @Procedure("mint.ness_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
   def search(
-    @Name("label") label: String,
+    @Name("propName") propName: String,
     @Name("query") query: String
   ): JStream[SearchHit] = {
-    JStream.empty()
+    Option(db.index().forNodes(NeighborhoodBasedSimilaritySearch.indexName(propName))) match {
+      case Some(index) => index.query(query).iterator().asScala map ((n: Node) => new SearchHit(n)) seqStream
+      case None => JStream.empty()
+    }
   }
 
   /**
@@ -58,7 +57,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
     @Name("depth") depth: Long,
     @Name("alpha") alpha: Double
   ): Unit = {
-    // TODO Need to add alpha for the propagation of the labels
+    // TODO need to figure out how to scoring a graph
     val node = db.getNodeById(nodeId)
     val td = db.traversalDescription()
       .relationships(RelationshipType.withName(relType))

@@ -1,6 +1,7 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
 import collection.JavaConverters._
+import scala.compat.java8.StreamConverters._
 
 import java.util.List
 import java.util.stream.Stream
@@ -17,9 +18,6 @@ import org.neo4j.procedure.Procedure
  * the lucene query language.
  */
 class FullTextIndex extends Neo4JProcedure {
-  implicit def toJavaFunction[U, V](f: Function1[U, V]): java.util.function.Function[U, V] = new java.util.function.Function[U, V] {
-    override def apply(t: U): V = f(t)
-  }
 
   /**
    * This declares the first of two procedures in this class - a
@@ -72,7 +70,7 @@ class FullTextIndex extends Neo4JProcedure {
     log.debug("Index uses: `%s`", index)
     // If there is an index, do a lookup and convert the result
     // to our output record.
-    db.index().forNodes(index).query(query).stream().map((n: Node) => { new SearchHit(n) })
+    db.index().forNodes(index).query(query).iterator().asScala.map((n: Node) => { new SearchHit(n) }).seqStream
   }
 
   /**
