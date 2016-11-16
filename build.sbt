@@ -1,5 +1,12 @@
 val neo4j_version = "3.0.7"
 
+val deployTask = TaskKey[Unit]("deploy", "Copies assembly jar to remote location")
+
+val devServerStartTask = TaskKey[Unit]("devStart", "Start the dev server within a docker container")
+
+val devServerRestartTask = TaskKey[Unit]("devRestart", "Re-start the dev server within a docker container")
+
+val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
 lazy val devDeploySettings = Seq(
   deployTask := {
@@ -32,14 +39,6 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "test"
     )
   )
-
-val deployTask = TaskKey[Unit]("deploy", "Copies assembly jar to remote location")
-
-val devServerStartTask = TaskKey[Unit]("devStart", "Start the dev server within a docker container")
-
-val devServerRestartTask = TaskKey[Unit]("devRestart", "Re-start the dev server within a docker container")
-
-val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
 devServerStartTask := {
   Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
