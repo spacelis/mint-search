@@ -15,4 +15,12 @@ create (a:N {labels: "a"}),
        (w)-[:relateTo]->(a),
        (x)-[:relateTo]->(b),
        (y)-[:relateTo]->(d),
-       (z)-[:relateTo]->(c)
+       (z)-[:relateTo]->(c);
+call mint.ness_index(0, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(1, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(2, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(3, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(4, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(5, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(6, "relateTo", "labels", 1, 0.1);
+call mint.ness_index(7, "relateTo", "labels", 1, 0.1);
