@@ -1,6 +1,5 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import scala.language.implicitConversions
 import scala.math._
 import collection.JavaConverters._
 import java.util.stream.{ Stream => JStream }
@@ -8,7 +7,7 @@ import java.util.stream.{ Stream => JStream }
 import scala.compat.java8.StreamConverters._
 import org.neo4j.graphdb.{ Node, RelationshipType }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
-import org.neo4j.graphdb.index.{ Index, IndexManager }
+import org.neo4j.graphdb.index.IndexManager
 import org.neo4j.procedure.Name
 import org.neo4j.procedure.PerformsWrites
 import org.neo4j.procedure.Procedure
@@ -34,7 +33,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
     @Name("query") query: String
   ): JStream[SearchHit] = {
     Option(db.index().forNodes(NeighborhoodBasedSimilaritySearch.indexName(propName))) match {
-      case Some(index) => index.query(query).iterator().asScala map ((n: Node) => new SearchHit(n)) seqStream
+      case Some(index) => index.query(query).iterator().asScala.map((n: Node) => new SearchHit(n)).seqStream
       case None => JStream.empty()
     }
   }
@@ -76,7 +75,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
       weight = pow(alpha, path.length());
       label <- path.endNode().getProperty(propName).toString.split(" ")
     ) yield (label, weight)
-    label_weight_parts.toList.groupBy(_._1).mapValues(x => x map (_._2) sum)
+    label_weight_parts.toList.groupBy(_._1).mapValues(x => x.map (_._2).sum)
   }
 
 }
