@@ -16,7 +16,7 @@ import org.neo4j.procedure.Procedure
  * This class implements the NEighborhood based Similarity Search
  */
 class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
-
+  import NeighborhoodBasedSimilaritySearch._
   /**
    *
    * @param propName the property name for the labels
@@ -32,7 +32,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
     @Name("propName") propName: String,
     @Name("query") query: String
   ): JStream[SearchHit] = {
-    Option(db.index().forNodes(NeighborhoodBasedSimilaritySearch.indexName(propName))) match {
+    Option(db.index().forNodes(indexName(propName))) match {
       case Some(index) => index.query(query).iterator().asScala.map((n: Node) => new SearchHit(n)).seqStream
       case None => JStream.empty()
     }
@@ -62,11 +62,12 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
       .relationships(RelationshipType.withName(relType))
       .uniqueness(Uniqueness.NODE_GLOBAL)
       .evaluator(Evaluators.atDepth(depth.toInt))
-    val index = db.index().forNodes(NeighborhoodBasedSimilaritySearch.indexName(propName), NeighborhoodBasedSimilaritySearch.FULL_TEXT.asJava)
+    val index = db.index().forNodes(indexName(propName), FULL_TEXT.asJava)
     val labelWeights = propagatedLabels(node, propName, td, alpha)
     index.remove(node) // Make sure the node will be replaced in the index
-    index.add(node, propName, labelWeights.keys mkString (" "))
-    node.setProperty(NeighborhoodBasedSimilaritySearch.LABEL_PROPERTY_NAME, labelWeights)
+    index.add(node, propName, labelWeights.keys mkString " ")
+    for ((k, v) <- labelWeights)
+      node.setProperty(propLabelName(k), v)
   }
 
   def propagatedLabels(node: Node, propName: String, td: TraversalDescription, alpha: Double): Map[String, Double] = {
@@ -75,7 +76,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
       weight = pow(alpha, path.length());
       label <- path.endNode().getProperty(propName).toString.split(" ")
     ) yield (label, weight)
-    label_weight_parts.toList.groupBy(_._1).mapValues(x => x.map (_._2).sum)
+    label_weight_parts.toList.groupBy(_._1).mapValues(x => x.map(_._2).sum)
   }
 
 }
@@ -83,5 +84,5 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
 object NeighborhoodBasedSimilaritySearch {
   val FULL_TEXT = Map(IndexManager.PROVIDER -> "lucene", "type" -> "fulltext")
   def indexName(propName: String) = s"index-prop-$propName"
-  val LABEL_PROPERTY_NAME = "_labels"
+  def propLabelName(label: String) = s"lb_$label"
 }
