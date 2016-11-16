@@ -6,6 +6,8 @@ val devServerStartTask = TaskKey[Unit]("devStart", "Start the dev server within 
 
 val devServerRestartTask = TaskKey[Unit]("devRestart", "Re-start the dev server within a docker container")
 
+val devServerRelaunchTask = TaskKey[Unit]("devRelaunch", "Re-start the dev server within a docker container")
+
 val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
 lazy val devDeploySettings = Seq(
@@ -53,4 +55,13 @@ devServerRestartTask := {
 
 devServerLogsTask := {
   Seq("bash", "-c", "cd dev_server && docker-compose logs") !
+}
+
+devServerRelaunchTask := {
+  Seq("bash", "-c", "cd dev_server && docker-compose stop") !
+
+  Seq("bash", "-c", "cd dev_server && sudo rm -rf data/databases/graph.db") !
+
+  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
+
 }
