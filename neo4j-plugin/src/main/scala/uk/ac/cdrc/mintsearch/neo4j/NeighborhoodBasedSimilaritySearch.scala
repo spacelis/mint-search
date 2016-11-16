@@ -1,15 +1,12 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import org.neo4j.graphdb.index.{ Index, IndexManager }
-
 import scala.language.implicitConversions
 import scala.math._
 import collection.JavaConverters._
 import java.util.stream.{ Stream => JStream }
 import java.util.function.{ Function => JFunction }
 
-import org.neo4j.procedure.Context
-import org.neo4j.graphdb.{ GraphDatabaseService, Node, RelationshipType }
+import org.neo4j.graphdb.{ Node, RelationshipType }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
 import org.neo4j.graphdb.index.IndexManager
 import org.neo4j.procedure.Name

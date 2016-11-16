@@ -1,19 +1,12 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import org.neo4j.graphdb.index.IndexManager
 import collection.JavaConverters._
 
 import java.util.List
-import java.util.Set
 import java.util.stream.Stream
 
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
-import org.neo4j.graphdb.index.Index
 import org.neo4j.graphdb.index.IndexManager
-import org.neo4j.logging.Log
-import org.neo4j.procedure.Context
 import org.neo4j.procedure.Name
 import org.neo4j.procedure.PerformsWrites
 import org.neo4j.procedure.Procedure
