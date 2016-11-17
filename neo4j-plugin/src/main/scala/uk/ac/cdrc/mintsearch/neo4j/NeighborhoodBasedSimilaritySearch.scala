@@ -2,9 +2,11 @@ package uk.ac.cdrc.mintsearch.neo4j
 
 import scala.math._
 import collection.JavaConverters._
+import scala.compat.java8.StreamConverters._
 import java.util.stream.{ Stream => JStream }
 
-import scala.compat.java8.StreamConverters._
+import upickle.default._
+
 import org.neo4j.graphdb.{ Node, RelationshipType }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
 import org.neo4j.graphdb.index.IndexManager
@@ -19,20 +21,19 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
   import NeighborhoodBasedSimilaritySearch._
   /**
    *
-   * @param propName the property name for the labels
-   * @param query the lucene query, for instance `name:Brook*` to
-   *              search by property `name` and find any value starting
-   *              with `Brook`. Please refer to the Lucene Query Parser
-   *              documentation for full available syntax.
+   * @param propName the property name for the labels used in the index
+   * @param relType the name of the relationtype used in the index the index
+   * @param query the lucene query.
    * @return the nodes found by the query
    */
   @Procedure("mint.ness_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
   def search(
+    @Name("relType") relType: String,
     @Name("propName") propName: String,
     @Name("query") query: String
   ): JStream[SearchHit] = {
-    Option(db.index().forNodes(indexName(propName))) match {
+    Option(db.index().forNodes(mkIndexName(relType, propName))) match {
       case Some(index) => index.query(query).iterator().asScala.map((n: Node) => new SearchHit(n)).seqStream
       case None => JStream.empty()
     }
@@ -57,25 +58,32 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
     @Name("alpha") alpha: Double
   ): Unit = {
     // TODO need to figure out how to scoring a graph
+    val indexName = mkIndexName(relType, propName)
+    val nstorePropName = mkNStoreLabelName(relType, propName)
+    val index = db.index().forNodes(indexName, FULL_TEXT.asJava)
+
+    // Prepare the graph traverser for collecting neighbors' labels
     val node = db.getNodeById(nodeId)
     val td = db.traversalDescription()
       .relationships(RelationshipType.withName(relType))
       .uniqueness(Uniqueness.NODE_GLOBAL)
       .evaluator(Evaluators.atDepth(depth.toInt))
-    val index = db.index().forNodes(indexName(propName), FULL_TEXT.asJava)
     val labelWeights = propagatedLabels(node, propName, td, alpha)
+
+    // Indexing the node and store the neighbors' labels in the node's property
     index.remove(node) // Make sure the node will be replaced in the index
     index.add(node, propName, labelWeights.keys mkString " ")
-    for ((k, v) <- labelWeights)
-      node.setProperty(propLabelName(k), v)
+    node.setProperty(nstorePropName, write(labelWeights))
   }
 
   def propagatedLabels(node: Node, propName: String, td: TraversalDescription, alpha: Double): Map[String, Double] = {
+    // Visit all neighbors for the labels from the property given by the name
     val label_weight_parts = for (
       path <- td.traverse(node).iterator().asScala;
       weight = pow(alpha, path.length());
       label <- path.endNode().getProperty(propName).toString.split(" ")
     ) yield (label, weight)
+    // Aggregate the label weights.
     label_weight_parts.toList.groupBy(_._1).mapValues(x => x.map(_._2).sum)
   }
 
@@ -83,6 +91,6 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
 
 object NeighborhoodBasedSimilaritySearch {
   val FULL_TEXT = Map(IndexManager.PROVIDER -> "lucene", "type" -> "fulltext")
-  def indexName(propName: String) = s"index-prop-$propName"
-  def propLabelName(label: String) = s"lb_$label"
+  def mkIndexName(relName: String, propName: String) = s"NESSIndex-$relName-$propName"
+  def mkNStoreLabelName(relName: String, propName: String) = s"_nstore-$relName-$propName"
 }
