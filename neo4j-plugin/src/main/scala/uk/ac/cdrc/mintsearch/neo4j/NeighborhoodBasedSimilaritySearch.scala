@@ -5,7 +5,8 @@ import collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
 import java.util.stream.{ Stream => JStream }
 
-import upickle.default._
+import scala.pickling._
+import json._
 
 import org.neo4j.graphdb.{ Node, RelationshipType }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
@@ -73,7 +74,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
     // Indexing the node and store the neighbors' labels in the node's property
     index.remove(node) // Make sure the node will be replaced in the index
     index.add(node, propName, labelWeights.keys mkString " ")
-    node.setProperty(nstorePropName, write(labelWeights))
+    node.setProperty(nstorePropName, labelWeights.pickle.value)
   }
 
   def propagatedLabels(node: Node, propName: String, td: TraversalDescription, alpha: Double): Map[String, Double] = {
