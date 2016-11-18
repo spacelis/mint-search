@@ -10,16 +10,36 @@ val devServerRelaunchTask = TaskKey[Unit]("devRelaunch", "Re-start the dev serve
 
 val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
+val neo4jDeployJars = TaskKey[Seq[File]]("Collect jars that needs to be deployed along with the Neo4J plugin")
+
+
 lazy val devDeploySettings = Seq(
   deployTask := {
     val (art, file) = packagedArtifact.in(Compile, packageBin).value
     val remote = "dev_server/plugins"
     println(s"Copy $file -> $remote")
     s"cp $file $remote" !
+
+    for (f <- neo4jDeployJars.value)
+      {
+        println(s"Copy $f -> $remote")
+        Seq("cp", f.getAbsolutePath, remote) !
+      }
+  },
+  neo4jDeployJars := {
+    val is = (ivyScala in Compile).value
+    def mkModuleRef(m: ModuleID) = s"${m.organization}:${(for(cvf <- CrossVersion(m, is)) yield cvf(m.name)) getOrElse m.name}:${m.revision}"
+    val libMap = (for (p <- (fullClasspath in Compile).value;
+         m <- p.metadata.get(moduleID.key))
+      yield mkModuleRef(m) -> p.data).toMap
+    for (m <- libraryDependencies.value;
+         verM = mkModuleRef(m cross CrossVersion.binary);
+         if libMap contains verM)
+      yield libMap(verM)
   }
 )
 
-lazy val root = (project in file(".")).
+lazy val mintsearch = (project in file(".")).
   aggregate(neo4j_plugin).
   settings(inThisBuild(List(
       organization := "cdrc.ac.uk",
@@ -27,7 +47,8 @@ lazy val root = (project in file(".")).
     )),
     packagedArtifacts := Map.empty,
     publish := {},
-    publishLocal := {}
+    publishLocal := {},
+    name := "mintsearch"
   )
 
 
