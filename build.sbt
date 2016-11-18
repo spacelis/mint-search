@@ -15,12 +15,10 @@ val neo4jDeployJars = TaskKey[Seq[File]]("Collect jars that needs to be deployed
 
 lazy val devDeploySettings = Seq(
   deployTask := {
-    val (art, file) = packagedArtifact.in(Compile, packageBin).value
+    val (_, file) = packagedArtifact.in(Compile, packageBin).value
     val remote = "dev_server/plugins"
-    println(s"Copy $file -> $remote")
-    s"cp $file $remote" !
 
-    for (f <- neo4jDeployJars.value)
+    for (f <- neo4jDeployJars.value :+ file)
       {
         println(s"Copy $f -> $remote")
         Seq("cp", f.getAbsolutePath, remote) !
@@ -32,8 +30,9 @@ lazy val devDeploySettings = Seq(
     val libMap = (for (p <- (fullClasspath in Compile).value;
          m <- p.metadata.get(moduleID.key))
       yield mkModuleRef(m) -> p.data).toMap
-    for (m <- libraryDependencies.value;
-         verM = mkModuleRef(m cross CrossVersion.binary);
+    for (m <- libraryDependencies.value
+         if m.organization != "org.neo4j";
+         verM = mkModuleRef(m)
          if libMap contains verM)
       yield libMap(verM)
   }
