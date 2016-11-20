@@ -1,17 +1,20 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import collection.JavaConverters._
+import scala.math.max
 
 import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.graphdb.{Node, Path}
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.WeightedLabelSet
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 
 /**
   * Created by ucfawli on 11/18/16.
   */
 trait NeighbourBasedRanking extends Ranking{
 
-  def propagate(path: Path, propName: String): WeightedLabelSet
+
+  val traverDescription: TraversalDescription
+
+  val propagate: Path => WeightedLabelSet
 
   def measureSimilarity(weightedLabelSet: WeightedLabelSet)
 
@@ -19,18 +22,44 @@ trait NeighbourBasedRanking extends Ranking{
 
   }
 
-  def collectNeighbourLabels(node: Node, propName: String, td: TraversalDescription) = {
-
-    val label_weight_parts = for (
-      path <- td.traverse(node).iterator().asScala;
-    ) yield propagate(path, propName)
-
-    // Aggregate the label weights.
-    label_weight_parts.toList.flatMap(_.toSeq).groupBy(_._1).mapValues(x => x.map(_._2).sum)
-  }
+  def composeEmbedding()
 }
 
 object NeighbourBasedRanking {
+
+  type NodeId = Long
+
+  // WeightedLabelSet is a mapping from label to a weight value
   type WeightedLabelSet = Map[String, Double]
 
+  // MatchedNodes is a mapping from a node (by its ID) to a list of nodes (IDs)
+  type MatchedNodes = Map[NodeId, Seq[NodeId]]
+
+
+  /**
+    * A class for adding operators to Map[String, Double] aliased to WeightedLabelSet
+    * @param inner a value of type Map[String, Double]
+    */
+  class WeightedLabelSetWrapper(val inner: WeightedLabelSet) {
+    def ---(other: WeightedLabelSetWrapper) = {
+      inner map { case (k, v) =>  (k, max(0.0, v - other.inner.getOrElse(k, 0.0)))}
+    }
+
+  }
+
+  /**
+    * Sum up a list of weight distributions
+    * @param xs a list of WeightedLabelSets
+    * @return a WeightedLabelSet in which the labels' weights are summed from xs
+    */
+  def sum(xs: TraversableOnce[WeightedLabelSet]) =
+    xs.flatMap(_.toSeq).toSeq.groupBy(_._1).mapValues(x => x.map(_._2).sum)
+
+  /**
+    * Implicit wrapping a value of type WeightedLabelSet (Map[String, Double]) to provide additional operator on them
+    * @param wls a value of WeightedLabelSet
+    * @return a wrapped Map[String, Double]
+    */
+  implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
+    new WeightedLabelSetWrapper(wls)
 }
