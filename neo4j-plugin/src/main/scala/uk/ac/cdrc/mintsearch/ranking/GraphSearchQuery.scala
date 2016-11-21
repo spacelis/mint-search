@@ -1,40 +1,41 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import java.io.{File, IOException}
+import java.io.{File, IOException, PrintWriter, StringWriter}
 
 import org.neo4j.cypher.export.CypherResultSubGraph
 
-import collection.JavaConverters._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.traversal.TraversalDescription
+import org.neo4j.cypher.export.SubGraphExporter
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.NodeId
 
 /**
   * Created by ucfawli on 20-Nov-16.
   */
-case class GraphSearchQuery(db: GraphDatabaseService, dbStore: File) {
+case class GraphSearchQuery(qdb: GraphDatabaseService, qdbStore: File) {
   def close(): Unit = {
-    db.shutdown()
-    dbStore.delete()
+    qdb.shutdown()
+    qdbStore.delete()
   }
 }
 
 object GraphSearchQuery {
-  def fromCypher(cypher: String): GraphSearchQuery = {
+  def fromCypherCreate(cypher: String): GraphSearchQuery = {
     val dbStore = mkTempDir()
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(dbStore)
     db.execute(cypher)
     new GraphSearchQuery(db, dbStore)
   }
 
-  def fromNodeNeighbourHood(nodeId: NodeId)(implicit db: GraphDatabaseService, traversalDescription: TraversalDescription) = {
-    //FIXME We should reconsider how can we construct a subgraph for search
-    val subgraph = new CypherResultSubGraph()
-    for {
-      path <- traversalDescription.traverse(db.getNodeById(nodeId)).iterator().asScala
-      node = path.endNode()
-    } subgraph.add(node)
+  def fromNeighbourHood(nodeId: NodeId)(implicit db: GraphDatabaseService):GraphSearchQuery = {
+    val query = s"MATCH (n)--(u)--(v) WHERE ID(n) = $nodeId RETURN n, u, v"
+    fromCypherQuery(query)
+  }
+
+  def fromCypherQuery(query: String)(implicit db: GraphDatabaseService): GraphSearchQuery = {
+    val sWriter = new StringWriter
+    new SubGraphExporter(CypherResultSubGraph.from(db.execute(query), db, true)).export(new PrintWriter(sWriter))
+    fromCypherCreate(sWriter.getBuffer.toString)
   }
 
   val defaultTempDir = new File("/tmp")
