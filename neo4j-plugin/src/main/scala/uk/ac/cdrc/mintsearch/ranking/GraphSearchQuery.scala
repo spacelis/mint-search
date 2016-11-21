@@ -27,8 +27,11 @@ object GraphSearchQuery {
     new GraphSearchQuery(db, dbStore)
   }
 
-  def fromNeighbourHood(nodeId: NodeId)(implicit db: GraphDatabaseService):GraphSearchQuery = {
-    val query = s"MATCH (n)--(u)--(v) WHERE ID(n) = $nodeId RETURN n, u, v"
+  def fromNeighbourHood(nodeId: NodeId, range: Int)(implicit db: GraphDatabaseService):GraphSearchQuery = {
+    assert(range > 0, "The range must be larger than 0")
+    val subMatchingPatten = (for (i <- 1 to range) yield s"(_$i)") mkString "--"
+    val subReturningStmt = (for (i <- 1 to range) yield s"_$i") mkString ", "
+    val query = s"MATCH (n)--$subMatchingPatten WHERE ID(n) = $nodeId RETURN n, $subReturningStmt"
     fromCypherQuery(query)
   }
 
