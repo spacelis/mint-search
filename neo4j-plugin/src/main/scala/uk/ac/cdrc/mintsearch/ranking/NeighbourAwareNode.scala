@@ -1,10 +1,10 @@
-package uk.ac.cdrc.mintsearch.neo4j
+package uk.ac.cdrc.mintsearch.ranking
 
-import collection.JavaConverters._
-import org.neo4j.graphdb.{Node, Path}
 import org.neo4j.graphdb.traversal.TraversalDescription
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{WeightedLabelSet, NodeId}
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.sum
+import org.neo4j.graphdb.{Node, Path}
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{NodeId, WeightedLabelSet, sum}
+
+import scala.collection.JavaConverters._
 
 /**
   * Created by ucfawli on 19-Nov-16.
@@ -49,9 +49,9 @@ trait NeighbourVisitor {
   } yield path
 }
 
-case class NodeWrapper(node: Node, traversalDescription: TraversalDescription) extends NeighbourVisitor
+case class NeighbourAwareNode(node: Node, traversalDescription: TraversalDescription) extends NeighbourVisitor
 
-object NodeWrapper {
+object NeighbourAwareNode {
 
   /**
     * This is a help function for creating a wrapped node
@@ -65,6 +65,6 @@ object NodeWrapper {
     * @param traversalDescription defines how neighbours are to be find
     * @return
     */
-  def wrapNode(implicit traversalDescription: TraversalDescription): (Node) => NodeWrapper =
-    (node: Node) => NodeWrapper(node, traversalDescription)
+  def wrapNode(implicit traversalDescription: TraversalDescription): (Node) => NeighbourAwareNode =
+    (node: Node) => NeighbourAwareNode(node, traversalDescription)
 }

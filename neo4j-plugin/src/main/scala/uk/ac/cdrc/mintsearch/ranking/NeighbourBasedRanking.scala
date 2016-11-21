@@ -1,10 +1,10 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import scala.math.max
-
-import org.neo4j.graphdb.traversal.TraversalDescription
-import org.neo4j.graphdb.{Node, Path}
+import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
+import org.neo4j.graphdb.{Node, Path, RelationshipType}
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
+import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
 
 /**
   * Created by ucfawli on 11/18/16.
@@ -22,19 +22,32 @@ trait NeighbourBasedRanking extends Ranking{
 
   }
 
-  def composeEmbedding()
+  def mkGraphDoc(nodeSet: Set[Node]) : GraphDoc = {
+    implicit val nodeWrapper = NeighbourAwareNode.wrapNode(traverDescription)
+    (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
+  }
+
+  def composeEmbedding(nodeMatching: NodeMatching)
 }
 
 object NeighbourBasedRanking {
 
   type NodeId = Long
 
-  // WeightedLabelSet is a mapping from label to a weight value
+  /**
+    * A mapping from label to a weight value
+    */
   type WeightedLabelSet = Map[String, Double]
 
-  // MatchedNodes is a mapping from a node (by its ID) to a list of nodes (IDs)
-  type MatchedNodes = Map[NodeId, Seq[NodeId]]
+  /**
+    * A mapping from a node (by its ID) to a list of nodes (IDs)
+    */
+  type NodeMatching = Map[NodeId, Seq[NodeId]]
 
+  /**
+    * A mapping from node to its weighted label set
+    */
+  type GraphDoc = Map[NodeId, WeightedLabelSet]
 
   /**
     * A class for adding operators to Map[String, Double] aliased to WeightedLabelSet
@@ -62,4 +75,12 @@ object NeighbourBasedRanking {
     */
   implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
     new WeightedLabelSetWrapper(wls)
+
+
+  def neighbourhoodTraversalDescription(order: Int, relTypes: Seq[String]): TraversalDescription = {
+    val td: TraversalDescription = new MonoDirectionalTraversalDescription()
+    relTypes.foldLeft(td)((td, rType) => td.relationships(RelationshipType.withName(rType)))
+      .uniqueness(Uniqueness.NODE_GLOBAL)
+      .evaluator(Evaluators.atDepth(order))
+  }
 }
