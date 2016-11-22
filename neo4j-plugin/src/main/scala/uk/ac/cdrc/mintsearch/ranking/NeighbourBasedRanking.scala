@@ -1,32 +1,34 @@
 package uk.ac.cdrc.mintsearch.ranking
 
+import org.neo4j.cypher.export.SubGraph
+
 import scala.math.max
-import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
-import org.neo4j.graphdb.{ Node, Path, RelationshipType }
+import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
+import org.neo4j.graphdb.{Node, Path, RelationshipType}
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
 
 /**
  * Created by ucfawli on 11/18/16.
  */
-trait NeighbourBasedRanking extends Ranking {
+trait NeighbourBasedRanking extends GraphRanking {
 
-  val traverDescription: TraversalDescription
+  def traverDescription: TraversalDescription
 
-  val propagate: Path => WeightedLabelSet
+  def propagate: Path => WeightedLabelSet
 
   def measureSimilarity(weightedLabelSet: WeightedLabelSet)
 
-  def rank(result: Iterator[WeightedLabelSet], query: WeightedLabelSet) = {
+  implicit val nodeWrapper = NeighbourAwareNode.wrapNode(traverDescription)
 
-  }
+  def rank(result: Iterator[WeightedLabelSet], query: WeightedLabelSet)
 
   def mkGraphDoc(nodeSet: Set[Node]): GraphDoc = {
-    implicit val nodeWrapper = NeighbourAwareNode.wrapNode(traverDescription)
     (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
   }
 
-  def composeEmbedding(nodeMatching: NodeMatching)
+  // FIXME use SubGraphEnumerator for reconstruct embeddings from ranking lists
+  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = ???
 }
 
 object NeighbourBasedRanking {
