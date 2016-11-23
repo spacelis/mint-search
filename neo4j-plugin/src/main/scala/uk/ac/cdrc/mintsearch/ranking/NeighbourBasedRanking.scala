@@ -19,7 +19,7 @@ trait NeighbourBasedRanking extends GraphRanking {
 
   def measureSimilarity(weightedLabelSet: WeightedLabelSet)
 
-  implicit val nodeWrapper = NeighbourAwareNode.wrapNode(traverDescription)
+  implicit val nodeWrapper: (Node) => NeighbourAwareNode = NeighbourAwareNode.wrapNode(traverDescription)
 
   def rank(result: Iterator[WeightedLabelSet], query: WeightedLabelSet)
 
@@ -55,7 +55,7 @@ object NeighbourBasedRanking {
    * @param inner a value of type Map[String, Double]
    */
   class WeightedLabelSetWrapper(val inner: WeightedLabelSet) {
-    def ---(other: WeightedLabelSetWrapper) = {
+    def ---(other: WeightedLabelSetWrapper): WeightedLabelSet = {
       inner map { case (k, v) => (k, max(0.0, v - other.inner.getOrElse(k, 0.0))) }
     }
 
@@ -66,8 +66,8 @@ object NeighbourBasedRanking {
    * @param xs a list of WeightedLabelSets
    * @return a WeightedLabelSet in which the labels' weights are summed from xs
    */
-  def sum(xs: TraversableOnce[WeightedLabelSet]) =
-    xs.flatMap(_.toSeq).toSeq.groupBy(_._1).mapValues(x => x.map(_._2).sum)
+  def sum(xs: TraversableOnce[WeightedLabelSet]): WeightedLabelSet =
+    xs.flatMap(_.toSeq).toSeq.groupBy(_._1).mapValues(_.map(_._2).sum)
 
   /**
    * Implicit wrapping a value of type WeightedLabelSet (Map[String, Double]) to provide additional operator on them
