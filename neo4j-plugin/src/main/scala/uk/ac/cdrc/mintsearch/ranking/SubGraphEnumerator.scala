@@ -19,7 +19,7 @@ case class GraphStore(nodes: List[Node], relationships: List[Relationship]) {
 
 class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
 
-  implicit val wrapper = wrapNode
+  private implicit val wrapper = wrapNode
 
   def nestMap[T, U](xs: List[List[T]])(f: T => U): List[List[U]] =
     xs map {_ map f}
@@ -36,20 +36,29 @@ class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
     (candidateNodes ++ neighbours) - newMatchedNode.getId
   }
 
-  def searchNeighbours(matched: Set[NodeId], unmatched: Set[NodeId], candidateNodes: Map[NodeId, Path], gs: GraphStore): Iterator[GraphStore] = {
-    candidateNodes.keySet & unmatched match {
+  def searchNeighbours(assembled: Set[NodeId], parts: Set[NodeId], candidateNodes: Map[NodeId, Path], gs: GraphStore): Iterator[GraphStore] = {
+    candidateNodes.keySet & parts match {
       case Set.empty => Iterator(gs)
       case unmatchedNeighbours => {
         for {
           nid <- unmatchedNeighbours
-          node = db.getNodeById(nid)
-          expanded = expandCandidates(candidateNodes, node)
+          expanded = expandCandidates(candidateNodes, db.getNodeById(nid))
           p = candidateNodes(nid)
           newGS = gs.addNodes(p.nodes.asScala).addRelationships(p.relationships.asScala)
-          gs <- searchNeighbours(matched + nid, unmatched - nid, expanded, newGS)
-        }
-          yield gs
+          gs <- searchNeighbours(assembled + nid, parts - nid, expanded, newGS)
+        } yield gs
       }.toIterator
     }
+  }
+
+  def assembleSubGraph(dangled: Set[NodeId], assembled: Set[NodeId], candidates: Set[NodeId]): Stream[(GraphStore, Set[NodeId], Set[NodeId], Set[NodeId])] = ???
+
+  def expandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
+    val neighbours = (for {
+      nid <- seedNodes & range
+      p <- db.getNodeById(nid).neighbours()
+    } yield p.endNode().getId -> p).toMap
+
+    (seedNodes, seedPaths) #:: expandingSubGraph(seedNodes ++ neighbours.keySet, seedPaths ++ neighbours, range)
   }
 }
