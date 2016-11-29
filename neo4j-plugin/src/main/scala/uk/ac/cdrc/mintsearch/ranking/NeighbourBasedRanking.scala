@@ -9,8 +9,10 @@ import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
 
 /**
- * Created by ucfawli on 11/18/16.
+  * Created by ucfawli on 11/18/16.
+  *
  */
+
 trait NeighbourBasedRanking extends GraphRanking {
 
   def traverDescription: TraversalDescription
@@ -28,7 +30,7 @@ trait NeighbourBasedRanking extends GraphRanking {
   }
 
   /**
-    * Return {@link CypherResultSubGraph}s from
+    * Return `CypherResultSubGraph`s from
     * @param nodeMatching the matching nodes (query nodes -> matched nodes)
     * @return an series sub graphs assembled from the node pool
     */

@@ -4,7 +4,6 @@ import scala.collection.JavaConverters._
 import org.neo4j.graphdb.{GraphDatabaseService, Node, Path, Relationship}
 import org.neo4j.graphdb.traversal.TraversalDescription
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{NodeId, NodeMatching}
-import uk.ac.cdrc.mintsearch.ranking.NeighbourAwareNode.wrapNode
 
 /**
   * Created by ucfawli on 11/22/16.
@@ -35,9 +34,7 @@ case class SubGraphStore(nodes: List[Node], relationships: List[Relationship]) {
   * @param td is a Neo4J traversal descriptor that defines the connectivity between two nodes
   * @param db is a Neo4J GraphDatabaseService within with the search carries out
   */
-case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
-
-  private implicit val wrapper = wrapNode
+case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService)(implicit nodeWrapper: Node => NeighbourAwareNode) {
 
   /**
     * This method is the main interface for iterating though the sub graphs from the ranking lists
