@@ -3,7 +3,7 @@ package uk.ac.cdrc.mintsearch.ranking
 import scala.collection.JavaConverters._
 import org.neo4j.graphdb.{GraphDatabaseService, Node, Path, Relationship}
 import org.neo4j.graphdb.traversal.TraversalDescription
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.NodeId
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{NodeId, NodeMatching}
 import uk.ac.cdrc.mintsearch.ranking.NeighbourAwareNode.wrapNode
 
 /**
@@ -18,16 +18,16 @@ case class GraphStore(nodes: List[Node], relationships: List[Relationship]) {
   def nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
 }
 
-class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
+case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
 
   private implicit val wrapper = wrapNode
 
   def nestMap[T, U](xs: List[List[T]])(f: T => U): List[List[U]] =
     xs map {_ map f}
 
-  def iterateInRankingList(rankingList: Map[NodeId, List[NodeId]]): Iterator[GraphStore] = {
+  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[GraphStore] = {
     val nodeSet = (for {
-      nl <- rankingList.values
+      nl <- nodeMatching.values
       n <- nl
     } yield n).toSet
     assembleSubGraph(nodeSet).toIterator

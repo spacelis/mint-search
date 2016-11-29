@@ -1,6 +1,6 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.cypher.export.SubGraph
+import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraph}
 
 import scala.math.max
 import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
@@ -27,8 +27,16 @@ trait NeighbourBasedRanking extends GraphRanking {
     (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
   }
 
-  // FIXME use SubGraphEnumerator for reconstruct embeddings from ranking lists
-  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = ???
+  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = {
+    for {
+      sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
+    } yield {
+      val cypherResultSubGraph = new CypherResultSubGraph()
+      sgs.nodes.foreach(cypherResultSubGraph.add)
+      sgs.relationships.foreach(cypherResultSubGraph.add)
+      cypherResultSubGraph
+    }
+  }
 }
 
 object NeighbourBasedRanking {
