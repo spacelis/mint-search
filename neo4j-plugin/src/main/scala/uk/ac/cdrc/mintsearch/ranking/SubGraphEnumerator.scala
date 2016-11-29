@@ -15,6 +15,7 @@ case class GraphStore(nodes: List[Node], relationships: List[Relationship]) {
   def addNodes(ns: Iterable[Node]) = GraphStore(ns.toList ++ nodes, relationships)
   def addRelationship(r: Relationship) = GraphStore(nodes, r :: relationships)
   def addRelationships(rs: Iterable[Relationship]) = GraphStore(nodes, rs.toList ++ relationships)
+  def nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
 }
 
 class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
@@ -24,41 +25,39 @@ class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService) {
   def nestMap[T, U](xs: List[List[T]])(f: T => U): List[List[U]] =
     xs map {_ map f}
 
-  //TODO Use searchNeighours for each of the nodes in the first list
-  def iterateInRankingList(nodeList: Map[NodeId, List[NodeId]]): Iterator[GraphStore] = ???
-
-  private def expandCandidates(candidateNodes: Map[NodeId, Path], newMatchedNode: Node): Map[NodeId, Path] = {
-    val neighbours = (for {
-      p <- newMatchedNode.neighbours()
-      n = p.endNode()
-    } yield (n.getId() -> p)).toMap
-
-    (candidateNodes ++ neighbours) - newMatchedNode.getId
+  def iterateInRankingList(rankingList: Map[NodeId, List[NodeId]]): Iterator[GraphStore] = {
+    val nodeSet = (for {
+      nl <- rankingList.values
+      n <- nl
+    } yield n).toSet
+    assembleSubGraph(nodeSet).toIterator
   }
 
-  def searchNeighbours(assembled: Set[NodeId], parts: Set[NodeId], candidateNodes: Map[NodeId, Path], gs: GraphStore): Iterator[GraphStore] = {
-    candidateNodes.keySet & parts match {
-      case Set.empty => Iterator(gs)
-      case unmatchedNeighbours => {
-        for {
-          nid <- unmatchedNeighbours
-          expanded = expandCandidates(candidateNodes, db.getNodeById(nid))
-          p = candidateNodes(nid)
-          newGS = gs.addNodes(p.nodes.asScala).addRelationships(p.relationships.asScala)
-          gs <- searchNeighbours(assembled + nid, parts - nid, expanded, newGS)
-        } yield gs
-      }.toIterator
-    }
+  def assembleSubGraph(dangled: Set[NodeId]): Stream[GraphStore] = {
+    val seed = dangled.take(1)
+    val subGraph = expandingSubGraph(seed, dangled)
+    subGraph #:: assembleSubGraph(dangled -- subGraph.nodeIds)
   }
 
-  def assembleSubGraph(dangled: Set[NodeId], assembled: Set[NodeId], candidates: Set[NodeId]): Stream[(GraphStore, Set[NodeId], Set[NodeId], Set[NodeId])] = ???
+  def expandingSubGraph(seedNodes: Set[NodeId],  range: Set[NodeId]): GraphStore = {
+    val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((a, b) => b)
+    val nodes = for (n <- nodeIds) yield db.getNodeById(n)
+    val relationships = (for (p <- path.values; r <- p.relationships().asScala) yield r.getId) map db.getRelationshipById
+    GraphStore(nodes.toList, relationships.toList)
+  }
 
-  def expandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
-    val neighbours = (for {
+  def stepExpandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
+    val pathToNeighbours = (for {
       nid <- seedNodes & range
       p <- db.getNodeById(nid).neighbours()
     } yield p.endNode().getId -> p).toMap
 
-    (seedNodes, seedPaths) #:: expandingSubGraph(seedNodes ++ neighbours.keySet, seedPaths ++ neighbours, range)
+    val matched = pathToNeighbours.keySet & range
+    val pathToMatched = (for (n <- matched) yield n -> pathToNeighbours(n)).toMap
+
+    if (matched.isEmpty)
+      (seedNodes, seedPaths) #:: Stream.empty
+    else
+      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ matched, seedPaths ++ pathToMatched, range -- pathToNeighbours.keySet)
   }
 }
