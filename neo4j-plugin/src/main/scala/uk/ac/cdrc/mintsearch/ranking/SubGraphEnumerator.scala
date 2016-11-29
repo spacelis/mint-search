@@ -70,7 +70,7 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
     * @return return the biggest sub graph expanding from the seed nodes within the range
     */
   def expandingSubGraph(seedNodes: Set[NodeId],  range: Set[NodeId]): SubGraphStore = {
-    val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((a, b) => b)
+    val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((_, b) => b)
     val nodes = for (n <- nodeIds) yield db.getNodeById(n)
     val relationships = (for (p <- path.values; r <- p.relationships().asScala) yield r.getId) map db.getRelationshipById
     SubGraphStore(nodes.toList, relationships.toList)

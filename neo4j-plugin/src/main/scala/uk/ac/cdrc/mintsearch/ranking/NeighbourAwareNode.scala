@@ -7,7 +7,7 @@ import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{ NodeId, WeightedLab
 import scala.collection.JavaConverters._
 
 /**
- * Created by ucfawli on 19-Nov-16.
+  * Created by ucfawli on 19-Nov-16.
  */
 trait NeighbourVisitor {
 
@@ -21,7 +21,7 @@ trait NeighbourVisitor {
    * @param propagate a function to derive the labels and their weights of a neighbour given the path to that neighbour
    * @return a `WeightedLabelSet` derived from the neighbourhood
    */
-  def collectNeighbourLabels(propagate: Path => WeightedLabelSet) = {
+  def collectNeighbourLabels(propagate: Path => WeightedLabelSet): WeightedLabelSet = {
 
     val label_weight_parts = for { path <- neighbours() } yield propagate(path)
 
