@@ -27,6 +27,11 @@ trait NeighbourBasedRanking extends GraphRanking {
     (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
   }
 
+  /**
+    * Return {@link CypherResultSubGraph}s from
+    * @param nodeMatching the matching nodes (query nodes -> matched nodes)
+    * @return an series sub graphs assembled from the node pool
+    */
   def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = {
     for {
       sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
