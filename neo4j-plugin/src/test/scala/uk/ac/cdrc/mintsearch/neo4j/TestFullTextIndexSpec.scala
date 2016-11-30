@@ -35,7 +35,7 @@ class TestFullTextIndexSpec extends FlatSpec {
     session.run(s"CALL mint.fulltext_index($nodeId, ['name'])")
 
     // Then I can search for that node with lucene query syntax
-    val result = session.run("CALL mint.fulltext_search('User', 'name:Brook*')")
+    val result: StatementResult = session.run("CALL mint.fulltext_search('User', 'name:Brook*')")
     assert(result.single().get("nodeId").asLong() === nodeId)
   }
 
