@@ -1,16 +1,16 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraph}
+import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraph }
 
 import scala.math.max
-import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
-import org.neo4j.graphdb.{Node, Path, RelationshipType}
+import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
+import org.neo4j.graphdb.{ Node, Path, RelationshipType }
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
 
 /**
-  * Created by ucfawli on 11/18/16.
-  *
+ * Created by ucfawli on 11/18/16.
+ *
  */
 
 trait NeighbourBasedRanking extends GraphRanking {
@@ -30,10 +30,10 @@ trait NeighbourBasedRanking extends GraphRanking {
   }
 
   /**
-    * Return `CypherResultSubGraph`s from
-    * @param nodeMatching the matching nodes (query nodes -> matched nodes)
-    * @return an series sub graphs assembled from the node pool
-    */
+   * Return `CypherResultSubGraph`s from
+   * @param nodeMatching the matching nodes (query nodes -> matched nodes)
+   * @return an series sub graphs assembled from the node pool
+   */
   def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = {
     for {
       sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)

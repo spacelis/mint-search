@@ -7,7 +7,7 @@ import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{ NodeId, WeightedLab
 import scala.collection.JavaConverters._
 
 /**
-  * Created by ucfawli on 19-Nov-16.
+ * Created by ucfawli on 19-Nov-16.
  */
 trait NeighbourVisitor {
 

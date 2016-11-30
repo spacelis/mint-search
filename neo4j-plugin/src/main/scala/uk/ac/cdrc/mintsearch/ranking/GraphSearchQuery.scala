@@ -1,6 +1,6 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import java.io.{File, IOException, PrintWriter, StringWriter}
+import java.io.{ File, IOException, PrintWriter, StringWriter }
 
 import org.neo4j.cypher.export.CypherResultSubGraph
 
@@ -10,8 +10,8 @@ import org.neo4j.cypher.export.SubGraphExporter
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.NodeId
 
 /**
-  * Created by ucfawli on 20-Nov-16.
-  */
+ * Created by ucfawli on 20-Nov-16.
+ */
 case class GraphSearchQuery(qdb: GraphDatabaseService, qdbStore: File) {
   def close(): Unit = {
     qdb.shutdown()
@@ -27,7 +27,7 @@ object GraphSearchQuery {
     new GraphSearchQuery(db, dbStore)
   }
 
-  def fromNeighbourHood(nodeId: NodeId, range: Int)(implicit db: GraphDatabaseService):GraphSearchQuery = {
+  def fromNeighbourHood(nodeId: NodeId, range: Int)(implicit db: GraphDatabaseService): GraphSearchQuery = {
     assert(range > 0, "The range must be larger than 0")
     val subMatchingPatten = (for (i <- 1 to range) yield s"(_$i)") mkString "--"
     val subReturningStmt = (for (i <- 1 to range) yield s"_$i") mkString ", "
