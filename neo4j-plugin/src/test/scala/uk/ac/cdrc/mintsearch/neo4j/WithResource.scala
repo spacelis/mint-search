@@ -10,7 +10,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 object WithResource {
-  def apply[C <: AutoCloseable, R](resource: => C)(f: C => R): Unit =
+  def apply[C <: AutoCloseable, R](resource: => C)(f: C => R): R =
     Try(resource).flatMap(resourceInstance => {
       try {
         val returnValue = f(resourceInstance)
@@ -30,6 +30,6 @@ object WithResource {
       }
     }) match {
       case Failure(ex) => throw ex
-      case Success(_) => ()
+      case Success(x) => x
     }
 }
