@@ -1,17 +1,18 @@
-package uk.ac.cdrc.mintsearch.neo4j
+package uk.ac.cdrc.mintsearch.ranking
 
-import org.scalatest._
-import collection.JavaConverters._
 import org.neo4j.driver.v1._
-import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.graphdb.traversal.TraversalDescription
+import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
-import uk.ac.cdrc.mintsearch.ranking.NeighbourAwareNode
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
+import org.scalatest._
+import uk.ac.cdrc.mintsearch.neo4j.WithResource
 import uk.ac.cdrc.mintsearch.ranking.NeighbourAwareNode._
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
+
+import scala.collection.JavaConverters._
 
 /**
- * Testing the fulltext_index/search procedure
+ * Testing NeighbourAwareNode
  */
 
 class NeighbourAwareNodeSpec extends WordSpec with Matchers{
