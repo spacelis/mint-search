@@ -96,6 +96,6 @@ object NeighbourBasedRanking {
     val td: TraversalDescription = new MonoDirectionalTraversalDescription()
     relTypes.foldLeft(td)((td, rType) => td.relationships(RelationshipType.withName(rType)))
       .uniqueness(Uniqueness.NODE_GLOBAL)
-      .evaluator(Evaluators.atDepth(order))
+      .evaluator(Evaluators.toDepth(order))
   }
 }
