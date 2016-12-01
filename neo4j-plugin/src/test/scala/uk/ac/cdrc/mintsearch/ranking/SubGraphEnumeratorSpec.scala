@@ -52,6 +52,61 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
       }
     }
 
+    "find a large connect component" in new Neo4JFixture {
+      WithResource(driver.session()) { session =>
+        // create a simple graph with two order of relationship friend
+        val res = session.run(
+          """CREATE
+            | (a: Person {name:'Alice'}),
+            | (b: Person {name: 'Bob'}),
+            | (c: Person {name: 'Carl'}),
+            | (d: Person {name: 'David'}),
+            | (e: Person {name: 'Elizabeth'}),
+            | (f: Person {name: 'Frank'}),
+            | (g: Person {name: 'Grace'}),
+            | (h: Person {name: 'Henry'}),
+            | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+            | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin)
+          .single()
+        val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+
+        WithResource(gdb.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(ntd, gdb)
+          val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
+          expanded should contain (nodes(6))
+          expanded should contain (nodes(7))
+        }
+      }
+    }
+
+    "find another large connect component" in new Neo4JFixture {
+      WithResource(driver.session()) { session =>
+        // create a simple graph with two order of relationship friend
+        val res = session.run(
+          """CREATE
+            | (a: Person {name:'Alice'}),
+            | (b: Person {name: 'Bob'}),
+            | (c: Person {name: 'Carl'}),
+            | (d: Person {name: 'David'}),
+            | (e: Person {name: 'Elizabeth'}),
+            | (f: Person {name: 'Frank'}),
+            | (g: Person {name: 'Grace'}),
+            | (h: Person {name: 'Henry'}),
+            | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+            | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin)
+          .single()
+        val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+
+        WithResource(gdb.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(ntd, gdb)
+          val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
+          expanded should not contain nodes(6)
+          expanded should not contain nodes(7)
+        }
+      }
+    }
 //    "return many neighbours" in new Neo4JFixture {
 //      WithResource(driver.session()) { session =>
 //        // create a simple graph with two order of relationship friend

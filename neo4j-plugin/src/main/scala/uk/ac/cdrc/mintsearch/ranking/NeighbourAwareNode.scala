@@ -41,9 +41,15 @@ trait NeighbourVisitor {
    * @return an iterator of all the neighbours by the paths to them
    * @see neighbours()
    */
-  def neighbours(subset: Set[NodeId]): Iterator[Path] = for {
+  def neighboursIn(subset: Set[NodeId]): Iterator[Path] = for {
     path <- neighbours()
     if path.nodes().asScala forall { subset contains _.getId }
+  } yield path
+
+
+  def generalNeighboursIn(subset: Set[NodeId]): Iterator[Path] = for {
+    path <- neighbours()
+    if subset contains path.endNode().getId
   } yield path
 }
 

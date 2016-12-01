@@ -86,15 +86,12 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
   def stepExpandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
     val pathToNeighbours = (for {
       nid <- seedNodes & range
-      p <- db.getNodeById(nid).neighbours()
+      p <- db.getNodeById(nid).generalNeighboursIn(range)
     } yield p.endNode().getId -> p).toMap
 
-    val matched = pathToNeighbours.keySet & range
-    val pathToMatched = (for (n <- matched) yield n -> pathToNeighbours(n)).toMap
-
-    if (matched.isEmpty)
+    if (pathToNeighbours.isEmpty)
       (seedNodes, seedPaths) #:: Stream.empty
     else
-      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ matched, seedPaths ++ pathToMatched, range -- seedNodes)
+      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ pathToNeighbours.keySet, seedPaths ++ pathToNeighbours, range -- seedNodes)
   }
 }
