@@ -95,6 +95,6 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
     if (matched.isEmpty)
       (seedNodes, seedPaths) #:: Stream.empty
     else
-      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ matched, seedPaths ++ pathToMatched, range -- pathToNeighbours.keySet)
+      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ matched, seedPaths ++ pathToMatched, range -- seedNodes)
   }
 }

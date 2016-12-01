@@ -45,7 +45,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
         WithResource(gdb.beginTx()) { _ =>
           val sge = SubGraphEnumerator(ntd, gdb)
-          val expanded = sge.expandingSubGraph(Set(nodeA), Set(nodeB, nodeC) ).nodes map {_.getId}
+          val expanded = sge.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
           expanded should contain (nodeB)
           expanded should contain (nodeC)
         }
