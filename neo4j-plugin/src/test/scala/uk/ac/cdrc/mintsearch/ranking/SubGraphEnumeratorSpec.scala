@@ -107,66 +107,37 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         }
       }
     }
-//    "return many neighbours" in new Neo4JFixture {
-//      WithResource(driver.session()) { session =>
-//        // create a simple graph with two order of relationship friend
-//        val nodeId: Long = session.run(
-//          """CREATE
-//            | (a: Person {name: 'Alice'}),
-//            | (b: Person {name: 'Bob'}),
-//            | (c: Person {name: 'Carl'}),
-//            | (d: Person {name: 'David'}),
-//            | (e: Person {name: 'Elizabeth'}),
-//            | (a)-[:Friend]->(b)-[:Friend]->(c),
-//            | (a)-[:Friend]->(d)-[:Friend]->(e)
-//            | RETURN id(a)""".stripMargin)
-//          .single()
-//          .get(0).asLong()
-//
-//        // create a wrapper function
-//        WithResource(gdb.beginTx()) { _ =>
-//          // query the neighbours
-//          val result = (for {
-//            p <- gdb.getNodeById(nodeId).neighbours()
-//            n <- p.nodes().asScala
-//          } yield n.getProperty("name").toString).toSet
-//          result should contain("Alice")
-//          result should contain("Bob")
-//          result should contain("Carl")
-//          result should contain("David")
-//        }
-//      }
-//    }
-//
-//    "return all neighbours within 2 hops" in new Neo4JFixture {
-//      WithResource(driver.session()) { session =>
-//        // create a simple graph with two order of relationship friend
-//        val nodeId: Long = session.run(
-//          """CREATE
-//            | (a: Person {name: 'Alice'}),
-//            | (b: Person {name: 'Bob'}),
-//            | (c: Person {name: 'Carl'}),
-//            | (d: Person {name: 'David'}),
-//            | (a)-[:Friend]->(b)-[:Friend]->(c),
-//            | (a)-[:Friend]->(d)-[:Friend]->(c)
-//            | RETURN id(a)""".stripMargin)
-//          .single()
-//          .get(0).asLong()
-//
-//        // create a wrapper function
-//        WithResource(gdb.beginTx()) { _ =>
-//          // query the neighbours
-//          val result = (for {
-//            p <- gdb.getNodeById(nodeId).neighbours()
-//            n <- p.nodes().asScala
-//          } yield n.getProperty("name").toString).toSet
-//          result should contain("Alice")
-//          result should contain("Bob")
-//          result should contain("Carl")
-//          result should contain("David")
-//        }
-//      }
-//    }
+
+    "assemble connect components" in new Neo4JFixture {
+      WithResource(driver.session()) { session =>
+        // create a simple graph with two order of relationship friend
+        val res = session.run(
+          """CREATE
+            | (a: Person {name:'Alice'}),
+            | (b: Person {name: 'Bob'}),
+            | (c: Person {name: 'Carl'}),
+            | (d: Person {name: 'David'}),
+            | (e: Person {name: 'Elizabeth'}),
+            | (f: Person {name: 'Frank'}),
+            | (g: Person {name: 'Grace'}),
+            | (h: Person {name: 'Henry'}),
+            | (a)-[:Friend]->(b)-[:Friend]->(c),
+            | (d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+            | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin)
+          .single()
+        val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+
+        WithResource(gdb.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(ntd, gdb)
+          val graphs = sge.assembleSubGraph(nodes.toSet).toVector
+          graphs(0).nodeIds should contain oneOf(nodes(0), nodes(3))
+          graphs(0).nodeIds should contain oneOf(nodes(1), nodes(4))
+          graphs(0).nodeIds should contain oneOf(nodes(2), nodes(5))
+        }
+      }
+    }
+
   }
 }
 

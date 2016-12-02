@@ -57,9 +57,14 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
    * @return a stream of sub graph stores from the dangled nodes
    */
   def assembleSubGraph(dangled: Set[NodeId]): Stream[SubGraphStore] = {
-    val seed = dangled.take(1)
-    val subGraph = expandingSubGraph(seed, dangled)
-    subGraph #:: assembleSubGraph(dangled -- subGraph.nodeIds)
+    dangled.toList match {
+      case x::xs =>
+        val seed = dangled.take(1)
+        val subGraph = expandingSubGraph(seed, dangled)
+        subGraph #:: assembleSubGraph(dangled -- subGraph.nodeIds)
+      case Nil =>
+        Stream.empty
+    }
   }
 
   /**
