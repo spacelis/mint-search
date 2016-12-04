@@ -25,25 +25,17 @@ trait NeighbourBasedRanking extends GraphRanking {
 
   def rank(result: Iterator[WeightedLabelSet], query: WeightedLabelSet)
 
-  def mkGraphDoc(nodeSet: Set[Node]): GraphDoc = {
+  def mkGraphDoc(nodeSet: Set[Node]): GraphDoc =
     (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
-  }
 
   /**
    * Return `CypherResultSubGraph`s from
    * @param nodeMatching the matching nodes (query nodes -> matched nodes)
    * @return an series sub graphs assembled from the node pool
    */
-  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = {
-    for {
-      sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
-    } yield {
-      val cypherResultSubGraph = new CypherResultSubGraph()
-      sgs.nodes.foreach(cypherResultSubGraph.add)
-      sgs.relationships.foreach(cypherResultSubGraph.add)
-      cypherResultSubGraph
-    }
-  }
+  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = for {
+    sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
+  } yield sgs
 }
 
 object NeighbourBasedRanking {
@@ -95,6 +87,13 @@ object NeighbourBasedRanking {
    */
   implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
     new WeightedLabelSetWrapper(wls)
+
+  implicit def asCypherResultSubGraph(subGraphStore: SubGraphStore): CypherResultSubGraph = {
+    val cypherResultSubGraph = new CypherResultSubGraph()
+    subGraphStore.nodes.foreach(cypherResultSubGraph.add)
+    subGraphStore.relationships.foreach(cypherResultSubGraph.add)
+    cypherResultSubGraph
+  }
 
   def neighbourhoodTraversalDescription(order: Int, relTypes: Seq[String]): TraversalDescription = {
     val td: TraversalDescription = new MonoDirectionalTraversalDescription()
