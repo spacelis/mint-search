@@ -70,8 +70,12 @@ object NeighbourBasedRanking {
    * @param inner a value of type Map[String, Double]
    */
   class WeightedLabelSetWrapper(val inner: WeightedLabelSet) {
-    def ---(other: WeightedLabelSetWrapper): WeightedLabelSet = {
+    def ~(other: WeightedLabelSetWrapper): WeightedLabelSet = {
       inner map { case (k, v) => (k, max(0.0, v - other.inner.getOrElse(k, 0.0))) }
+    }
+
+    def ~~(other: WeightedLabelSetWrapper): WeightedLabelSet = {
+      this.~(other) filter {_._2 > 0.0}
     }
 
   }
