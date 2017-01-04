@@ -12,8 +12,8 @@ import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.NodeId
 /**
  * Created by ucfawli on 20-Nov-16.
  */
-case class GraphSearchQuery(qdb: GraphDatabaseService, qdbStore: File) {
-  def close(): Unit = {
+case class GraphSearchQuery(qdb: GraphDatabaseService, qdbStore: File) extends AutoCloseable{
+  override def close(): Unit = {
     qdb.shutdown()
     qdbStore.delete()
   }

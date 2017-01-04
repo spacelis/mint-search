@@ -9,19 +9,27 @@ import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{ NodeId, NodeMatchin
  * Created by ucfawli on 11/22/16.
  */
 
+trait GraphSnippet {
+  def addNode(n: Node)
+  def addNodes(ns: Iterable[Node])
+  def addRelationship(r: Relationship)
+  def addRelationships(rs: Iterable[Relationship])
+}
+
 /**
  * This class is an intermediate result collecting bin as a counter part in scala for
  * Neo4J's class implementing SubGraph
  * @param nodes the nodes in a sub graph
  * @param relationships the relationships in a sub graph
  */
-case class SubGraphStore(nodes: List[Node], relationships: List[Relationship]) {
-  def addNode(n: Node) = SubGraphStore(n :: nodes, relationships)
-  def addNodes(ns: Iterable[Node]) = SubGraphStore(ns.toList ++ nodes, relationships)
-  def addRelationship(r: Relationship) = SubGraphStore(nodes, r :: relationships)
-  def addRelationships(rs: Iterable[Relationship]) = SubGraphStore(nodes, rs.toList ++ relationships)
+case class SimpleGraphSnippet(nodes: List[Node], relationships: List[Relationship]) extends GraphSnippet{
+  def addNode(n: Node) = SimpleGraphSnippet(n :: nodes, relationships)
+  def addNodes(ns: Iterable[Node]) = SimpleGraphSnippet(ns.toList ++ nodes, relationships)
+  def addRelationship(r: Relationship) = SimpleGraphSnippet(nodes, r :: relationships)
+  def addRelationships(rs: Iterable[Relationship]) = SimpleGraphSnippet(nodes, rs.toList ++ relationships)
   lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
 }
+
 
 /**
  * This class defines a procedure to assemble embeddings from the ranking lists of nodes.
@@ -43,7 +51,7 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
    * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
    * @return an iterator though the embeddings assembled from the pooled nodes
    */
-  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[SubGraphStore] = {
+  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[SimpleGraphSnippet] = {
     val nodeSet = (for {
       nl <- nodeMatching.values
       n <- nl
@@ -56,7 +64,7 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
    * @param dangled is a set of nodeIds
    * @return a stream of sub graph stores from the dangled nodes
    */
-  def assembleSubGraph(dangled: Set[NodeId]): Stream[SubGraphStore] = {
+  def assembleSubGraph(dangled: Set[NodeId]): Stream[SimpleGraphSnippet] = {
     dangled.toList match {
       case x::xs =>
         val seed = dangled.take(1)
@@ -74,11 +82,11 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
    *              nodes within the range will be considered in the returned sub graphs
    * @return return the biggest sub graph expanding from the seed nodes within the range
    */
-  def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): SubGraphStore = {
+  def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): SimpleGraphSnippet = {
     val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((_, b) => b)
     val nodes = for (n <- nodeIds) yield db.getNodeById(n)
     val relationships = (for (p <- path.values; r <- p.relationships().asScala) yield r.getId) map db.getRelationshipById
-    SubGraphStore(nodes.toList, relationships.toList)
+    SimpleGraphSnippet(nodes.toList, relationships.toList)
   }
 
   /**

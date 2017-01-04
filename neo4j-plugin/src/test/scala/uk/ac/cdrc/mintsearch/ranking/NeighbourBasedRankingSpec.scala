@@ -72,7 +72,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
             r <- p.relationships().asScala
           } yield r).toList
 
-          val sgs = SubGraphStore(nodes, relationships)
+          val sgs = SimpleGraphSnippet(nodes, relationships)
           val sgsNodeNames = sgs.getNodes.asScala.map(_.getProperty("name")).toSet
           sgsNodeNames should be (Set("Alice", "Bob", "Carl"))
         }

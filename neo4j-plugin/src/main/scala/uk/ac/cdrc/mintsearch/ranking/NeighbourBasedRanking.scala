@@ -1,12 +1,13 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraph }
-
 import scala.math.max
+import collection.JavaConverters._
+
+import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraph }
 import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
 import org.neo4j.graphdb.{ Node, Path, RelationshipType }
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 
 /**
  * Created by ucfawli on 11/18/16.
@@ -23,7 +24,14 @@ trait NeighbourBasedRanking extends GraphRanking {
 
   implicit val nodeWrapper: (Node) => NeighbourAwareNode = NeighbourAwareNode.wrapNode(traverDescription)
 
-  def rank(result: Iterator[WeightedLabelSet], query: WeightedLabelSet)
+
+  def rankByNode(node: WeightedLabelSet): Iterator[WeightedLabelSet]
+
+
+  override def search(gsq: GraphSearchQuery) = {
+    val gsqWLS = mkGraphDoc(gsq.qdb.getAllNodes.asScala.toSet)
+
+  }
 
   def mkGraphDoc(nodeSet: Set[Node]): GraphDoc =
     (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels(propagate)).toMap
@@ -88,7 +96,7 @@ object NeighbourBasedRanking {
   implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
     new WeightedLabelSetWrapper(wls)
 
-  implicit def asCypherResultSubGraph(subGraphStore: SubGraphStore): CypherResultSubGraph = {
+  implicit def asCypherResultSubGraph(subGraphStore: SimpleGraphSnippet): CypherResultSubGraph = {
     val cypherResultSubGraph = new CypherResultSubGraph()
     subGraphStore.nodes.foreach(cypherResultSubGraph.add)
     subGraphStore.relationships.foreach(cypherResultSubGraph.add)
