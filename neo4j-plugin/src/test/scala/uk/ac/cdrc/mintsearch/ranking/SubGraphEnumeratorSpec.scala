@@ -5,8 +5,8 @@ import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neo4j.WithResource
-import uk.ac.cdrc.mintsearch.ranking.NeighbourAwareNode._
+import uk.ac.cdrc.mintsearch.neo4j.{NeighbourAwareNode, SubGraphEnumerator, WithResource}
+import uk.ac.cdrc.mintsearch.neo4j.NeighbourAwareNode._
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 
 import scala.collection.JavaConverters._

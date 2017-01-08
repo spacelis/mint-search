@@ -4,7 +4,7 @@ import org.neo4j.cypher.export.CypherResultSubGraph
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
-import uk.ac.cdrc.mintsearch.ranking.SimpleGraphSnippet
+import SimpleGraphSnippet
 
 /**
   * Created by ucfawli on 08-Jan-17.

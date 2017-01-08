@@ -1,8 +1,8 @@
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.neo4j
 
 import org.neo4j.graphdb.traversal.TraversalDescription
-import org.neo4j.graphdb.{ Node, Path }
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{ NodeId, WeightedLabelSet, sum }
+import org.neo4j.graphdb.{Node, Path}
+import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{NodeId, WeightedLabelSet, sum}
 
 import scala.collection.JavaConverters._
 

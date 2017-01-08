@@ -2,6 +2,7 @@ package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.graphdb.{Node, Path}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphSnippet, NeighbourAwareNode, SubGraphEnumerator}
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
 
 import scala.collection.JavaConverters._
