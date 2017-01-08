@@ -1,13 +1,11 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import scala.math.max
-import collection.JavaConverters._
-
-import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraph }
-import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
-import org.neo4j.graphdb.{ Node, Path, RelationshipType }
-import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
+import org.neo4j.graphdb.traversal.TraversalDescription
+import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
+
+import scala.collection.JavaConverters._
+import scala.math.max
 
 /**
  * Created by ucfawli on 11/18/16.
@@ -41,7 +39,7 @@ trait NeighbourBasedRanking extends GraphRanking {
    * @param nodeMatching the matching nodes (query nodes -> matched nodes)
    * @return an series sub graphs assembled from the node pool
    */
-  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[SubGraph] = for {
+  def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[GraphSnippet] = for {
     sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
   } yield sgs
 }
@@ -96,17 +94,4 @@ object NeighbourBasedRanking {
   implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
     new WeightedLabelSetWrapper(wls)
 
-  implicit def asCypherResultSubGraph(subGraphStore: SimpleGraphSnippet): CypherResultSubGraph = {
-    val cypherResultSubGraph = new CypherResultSubGraph()
-    subGraphStore.nodes.foreach(cypherResultSubGraph.add)
-    subGraphStore.relationships.foreach(cypherResultSubGraph.add)
-    cypherResultSubGraph
-  }
-
-  def neighbourhoodTraversalDescription(order: Int, relTypes: Seq[String]): TraversalDescription = {
-    val td: TraversalDescription = new MonoDirectionalTraversalDescription()
-    relTypes.foldLeft(td)((td, rType) => td.relationships(RelationshipType.withName(rType)))
-      .uniqueness(Uniqueness.NODE_GLOBAL)
-      .evaluator(Evaluators.toDepth(order))
-  }
 }
