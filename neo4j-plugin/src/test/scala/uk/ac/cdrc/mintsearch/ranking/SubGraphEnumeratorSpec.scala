@@ -5,9 +5,10 @@ import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neo4j.{NeighbourAwareNode, SubGraphEnumerator, WithResource}
-import uk.ac.cdrc.mintsearch.neo4j.NeighbourAwareNode._
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking._
+import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode
+import uk.ac.cdrc.mintsearch.neo4j.{SubGraphEnumerator, WithResource}
+import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode._
+import uk.ac.cdrc.mintsearch.ranking.NeighbourhoodRanking._
 
 import scala.collection.JavaConverters._
 
@@ -24,7 +25,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
     implicit lazy val gdb: GraphDatabaseService = neo4jServer.graph()
     implicit lazy val ntd: TraversalDescription = neighbourhoodTraversalDescription(2, Seq("Friend"))
-    implicit lazy val nodeWrapper: (Node) => NeighbourAwareNode = wrapNode
+    implicit lazy val nodeWrapper: (Node) => NeighbourAwareNode = mkNodeWrapper
   }
 
   "A SubGraphEnumerator" should {

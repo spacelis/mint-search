@@ -2,7 +2,8 @@ package uk.ac.cdrc.mintsearch.neo4j
 
 import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.graphdb.{GraphDatabaseService, Node, Path, Relationship}
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.{NodeId, NodeMatching}
+import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode
+import uk.ac.cdrc.mintsearch._
 
 import scala.collection.JavaConverters._
 

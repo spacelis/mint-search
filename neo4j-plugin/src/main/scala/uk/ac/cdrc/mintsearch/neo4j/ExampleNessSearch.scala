@@ -1,25 +1,23 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import scala.math._
-import collection.JavaConverters._
-import scala.compat.java8.StreamConverters._
-import java.util.stream.{ Stream => JStream }
+import java.util.stream.{Stream => JStream}
 
-import scala.pickling._
-import json._
-
-import org.neo4j.graphdb.{ Node, RelationshipType }
-import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
 import org.neo4j.graphdb.index.IndexManager
-import org.neo4j.procedure.Name
-import org.neo4j.procedure.PerformsWrites
-import org.neo4j.procedure.Procedure
+import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
+import org.neo4j.graphdb.{Node, RelationshipType}
+import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
+
+import scala.collection.JavaConverters._
+import scala.compat.java8.StreamConverters._
+import scala.math._
+import scala.pickling._
+import scala.pickling.json._
 
 /**
  * This class implements the NEighborhood based Similarity Search
  */
-class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
-  import NeighborhoodBasedSimilaritySearch._
+class ExampleNessSearch extends Neo4JProcedure {
+  import ExampleNessSearch._
   /**
    *
    * @param propName the property name for the labels used in the index
@@ -90,7 +88,7 @@ class NeighborhoodBasedSimilaritySearch extends Neo4JProcedure {
 
 }
 
-object NeighborhoodBasedSimilaritySearch {
+object ExampleNessSearch {
   val FULL_TEXT = Map(IndexManager.PROVIDER -> "lucene", "type" -> "fulltext")
   def mkIndexName(relName: String, propName: String) = s"NESSIndex-$relName-$propName"
   def mkNStoreLabelName(relName: String, propName: String) = s"_nstore-$relName-$propName"

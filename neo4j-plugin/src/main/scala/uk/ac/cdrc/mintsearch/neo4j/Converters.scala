@@ -1,10 +1,9 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
 import org.neo4j.cypher.export.CypherResultSubGraph
-import org.neo4j.graphdb.RelationshipType
+import org.neo4j.graphdb.{Path, RelationshipType}
 import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
-import SimpleGraphSnippet
 
 /**
   * Created by ucfawli on 08-Jan-17.
@@ -18,10 +17,4 @@ object Converters {
     cypherResultSubGraph
   }
 
-  def neighbourhoodTraversalDescription(order: Int, relTypes: Seq[String]): TraversalDescription = {
-    val td: TraversalDescription = new MonoDirectionalTraversalDescription()
-    relTypes.foldLeft(td)((td, rType) => td.relationships(RelationshipType.withName(rType)))
-      .uniqueness(Uniqueness.NODE_GLOBAL)
-      .evaluator(Evaluators.toDepth(order))
-  }
 }

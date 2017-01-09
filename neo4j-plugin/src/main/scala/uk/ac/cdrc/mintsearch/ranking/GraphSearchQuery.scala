@@ -7,7 +7,7 @@ import org.neo4j.cypher.export.CypherResultSubGraph
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.cypher.export.SubGraphExporter
-import uk.ac.cdrc.mintsearch.ranking.NeighbourBasedRanking.NodeId
+import uk.ac.cdrc.mintsearch._
 
 /**
  * Created by ucfawli on 20-Nov-16.
