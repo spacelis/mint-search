@@ -2,22 +2,20 @@ package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neo4j.MintSearchContext
+import uk.ac.cdrc.mintsearch.neo4j.Neo4JContainer
 
 import scala.collection.JavaConverters._
 
 /**
  * Created by ucfawli on 19-Nov-16.
  */
-trait NeighbourVisitor extends MintSearchContext with TraversalStrategy{
-
-  val node: Node
+class NeighbourVisitor(val node: Node)(implicit container: Neo4JContainer with TraversalStrategy){
 
   /**
    * Find all neighbours of this node
    * @return an iterator of all the neighbours by the paths to them
    */
-  def neighbours(): Iterator[Path] = traversalDescription.traverse(node).iterator().asScala
+  def neighbours(): Iterator[Path] = container.traversalDescription.traverse(node).iterator().asScala
 
   /**
    * Identify all the neighbours in the subset
@@ -38,7 +36,7 @@ trait NeighbourVisitor extends MintSearchContext with TraversalStrategy{
 
 }
 
-trait NeighbourAwareNode extends NeighbourVisitor with Propagation{
+case class NeighbourAwareNode(override val node: Node)(implicit container: Neo4JContainer with TraversalStrategy with Propagation) extends NeighbourVisitor(node)(container){
 
   /**
     * Collect all the labels from the neighbours and use propagate function to assign weight to the labels and merge
@@ -46,12 +44,13 @@ trait NeighbourAwareNode extends NeighbourVisitor with Propagation{
     * @return a `WeightedLabelSet` derived from the neighbourhood
     */
   def collectNeighbourLabels: WeightedLabelSet = {
-    val label_weight_parts = for { path <- neighbours() } yield propagate(path)
+    val label_weight_parts = for { path <- neighbours() } yield container.propagate(path)
 
     sum(label_weight_parts) // Aggregate the label weights.
   }
 }
 
-object NeighbourAwareNode {
-
+trait NeighbourAware {
+  self: Neo4JContainer with TraversalStrategy with Propagation =>
+  implicit def nodeWrapper(node: Node): NeighbourAwareNode = NeighbourAwareNode(node)(this)
 }

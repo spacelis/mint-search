@@ -5,7 +5,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 /**
   * Created by ucfawli on 08-Jan-17.
   */
-trait MintSearchContext {
+trait Neo4JContainer {
 
   val db: GraphDatabaseService
 

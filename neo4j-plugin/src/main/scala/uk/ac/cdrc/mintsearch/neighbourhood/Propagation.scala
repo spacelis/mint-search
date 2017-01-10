@@ -7,15 +7,16 @@ import uk.ac.cdrc.mintsearch.neo4j.LabelMaker
 /**
   * Created by ucfawli on 08-Jan-17.
   */
-trait Propagation extends LabelMaker{
+trait Propagation {
     def propagate(p: Path): WeightedLabelSet
 }
 
 trait ExponentialPropagation extends Propagation {
+  self: LabelMaker =>
 
   val propagationFactor: Double
 
-  override def propagate(p: Path) = {
+  override def propagate(p: Path): WeightedLabelSet = {
     val weight = Math.pow(propagationFactor, p.length())
     collectLabels(p.endNode()) map {_ -> weight} toMap
   }
