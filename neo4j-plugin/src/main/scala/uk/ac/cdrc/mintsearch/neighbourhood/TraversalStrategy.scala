@@ -14,7 +14,7 @@ trait TraversalStrategy {
 trait NeighbourhoodByRadiusAndRelationships extends TraversalStrategy {
   val radius: Int
   val relTypes: Seq[String]
-  override val traversalDescription: TraversalDescription =
+  override lazy val traversalDescription: TraversalDescription =
     relTypes.foldLeft(new MonoDirectionalTraversalDescription(): TraversalDescription)((td, rType) => td.relationships(RelationshipType.withName(rType)))
     .uniqueness(Uniqueness.NODE_GLOBAL)
     .evaluator(Evaluators.toDepth(radius))
@@ -24,7 +24,7 @@ trait NeighbourhoodByRadiusAndRelationships extends TraversalStrategy {
 
 trait NeighbourhoodByRadius extends TraversalStrategy{
   val radius: Int
-  override val traversalDescription: TraversalDescription = new MonoDirectionalTraversalDescription ()
+  override lazy val traversalDescription: TraversalDescription = new MonoDirectionalTraversalDescription ()
     .uniqueness(Uniqueness.NODE_GLOBAL)
     .evaluator(Evaluators.toDepth(radius))
 

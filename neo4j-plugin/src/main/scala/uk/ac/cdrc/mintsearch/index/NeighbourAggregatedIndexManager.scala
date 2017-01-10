@@ -17,7 +17,7 @@ trait NeighbourAggregatedIndexManager{
   self: Neo4JContainer with LabelMaker with NeighbourAware =>
   val indexName: String
 
-  val indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)
+  lazy val indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)
 
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   def index(n: Node): Unit = {
