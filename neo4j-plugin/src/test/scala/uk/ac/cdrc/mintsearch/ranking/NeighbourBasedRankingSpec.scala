@@ -5,9 +5,10 @@ import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.graphdb.traversal.TraversalDescription
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode
-import uk.ac.cdrc.mintsearch.neo4j.{SimpleGraphSnippet, WithResource}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourAwareNode, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
 import uk.ac.cdrc.mintsearch._
+import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode._
 
 import scala.collection.JavaConverters._
@@ -41,15 +42,29 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
     def builder: TestServerBuilder = _builder
     lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-    implicit lazy val gdb: GraphDatabaseService = neo4jServer.graph()
-    implicit lazy val ntd: TraversalDescription = neighbourhoodTraversalDescription(2, Seq("Friend"))
-    implicit lazy val nodeWrapper: (Node) => NeighbourAwareNode = mkNodeWrapper
+
+    val indexManager = new NeighbourAggregatedIndexManager
+      with Neo4JContainer
+      with ExponentialPropagation
+      with PropertyLabelMaker
+      with NeighbourhoodByRadius
+      with NeighbourAware
+    {
+
+      override val radius: Int = 2
+      override val propagationFactor: Double = 0.5
+
+      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
+      override val labelPropKey: String = s"__nagg_$radius"
+      override val db: GraphDatabaseService = neo4jServer.graph()
+    }
   }
 
   "asCypherResultSubGraph" should {
     "return a CypherResultSubGraph representing the sub graph store" in new Neo4JFixture {
 
       WithResource(driver.session()) { session =>
+        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val nodeId: Long = session.run(
           """CREATE
@@ -62,20 +77,20 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
           .get(0).asLong()
 
         // create a wrapper function
-        WithResource(gdb.beginTx()) { _ =>
+        WithResource(indexManager.db.beginTx()) { _ =>
           // query the neighbours
           val nodes = (for {
-            p <- gdb.getNodeById(nodeId).neighbours()
+            p <- indexManager.db.getNodeById(nodeId).neighbours()
             n <- p.nodes().asScala
           } yield n).toList
 
           val relationships = (for {
-            p <- gdb.getNodeById(nodeId).neighbours()
+            p <- indexManager.db.getNodeById(nodeId).neighbours()
             r <- p.relationships().asScala
           } yield r).toList
 
           val sgs = SimpleGraphSnippet(nodes, relationships)
-          val sgsNodeNames = sgs.getNodes.asScala.map(_.getProperty("name")).toSet
+          val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
           sgsNodeNames should be (Set("Alice", "Bob", "Carl"))
         }
       }

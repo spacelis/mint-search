@@ -1,16 +1,12 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.driver.v1._
-import org.neo4j.graphdb.traversal.TraversalDescription
-import org.neo4j.graphdb.{GraphDatabaseService, Node}
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode
-import uk.ac.cdrc.mintsearch.neo4j.{SubGraphEnumerator, WithResource}
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode._
-import uk.ac.cdrc.mintsearch.ranking.NeighbourhoodRanking._
-
-import scala.collection.JavaConverters._
+import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SubGraphEnumerator, WithResource}
 
 /**
   * Testing the SubGraphEnumerator
@@ -23,15 +19,29 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
     def builder: TestServerBuilder = _builder
     lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-    implicit lazy val gdb: GraphDatabaseService = neo4jServer.graph()
-    implicit lazy val ntd: TraversalDescription = neighbourhoodTraversalDescription(2, Seq("Friend"))
-    implicit lazy val nodeWrapper: (Node) => NeighbourAwareNode = mkNodeWrapper
+
+    val indexManager = new NeighbourAggregatedIndexManager
+      with Neo4JContainer
+      with ExponentialPropagation
+      with PropertyLabelMaker
+      with NeighbourhoodByRadius
+      with NeighbourAware
+    {
+
+      override val radius: Int = 2
+      override val propagationFactor: Double = 0.5
+
+      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
+      override val labelPropKey: String = s"__nagg_$radius"
+      override val db: GraphDatabaseService = neo4jServer.graph()
+    }
   }
 
   "A SubGraphEnumerator" should {
 
     "find a connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
+        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -44,8 +54,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
 
-        WithResource(gdb.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(ntd, gdb)
+        WithResource(indexManager.db.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
           val expanded = sge.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
           expanded should contain (nodeB)
           expanded should contain (nodeC)
@@ -55,6 +65,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "find a large connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
+        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -72,8 +83,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(gdb.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(ntd, gdb)
+        WithResource(indexManager.db.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
           val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
           expanded should contain (nodes(6))
           expanded should contain (nodes(7))
@@ -83,6 +94,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "find another large connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
+        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -100,8 +112,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(gdb.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(ntd, gdb)
+        WithResource(indexManager.db.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
           val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
           expanded should not contain nodes(6)
           expanded should not contain nodes(7)
@@ -111,6 +123,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "assemble connect components" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
+        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -129,8 +142,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(gdb.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(ntd, gdb)
+        WithResource(indexManager.db.beginTx()) { _ =>
+          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
           val graphs = sge.assembleSubGraph(nodes.toSet).toVector
           graphs(0).nodeIds should contain oneOf(nodes(0), nodes(3))
           graphs(0).nodeIds should contain oneOf(nodes(1), nodes(4))
