@@ -20,8 +20,6 @@ trait NeighbourhoodRanking extends GraphRanking{
 
   override def search(gsq: GraphSearchQuery) = ???
 
-  def mkGraphDoc(nodeSet: Set[Node]): GraphDoc =
-    (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels).toMap
 
   /**
    * Return `CypherResultSubGraph`s from
