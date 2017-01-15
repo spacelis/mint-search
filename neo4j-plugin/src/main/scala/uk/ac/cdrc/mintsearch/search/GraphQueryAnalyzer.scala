@@ -1,4 +1,4 @@
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.search
 
 import org.neo4j.graphdb.Node
 import uk.ac.cdrc.mintsearch.GraphDoc
@@ -10,7 +10,9 @@ import scala.collection.JavaConverters._
 /**
   * Created by ucfawli on 15-Jan-17.
   */
-trait GraphQueryAnalyzer {
+trait GraphQueryAnalyzer
+
+trait NeighbourAggregatedAnalyzer extends GraphQueryAnalyzer {
   self: NeighbourAwareContext =>
   def analyze(q: GraphSearchQuery): GraphDoc = WithResource (q.qdb.beginTx()) {session =>
     mkGraphDoc(q.qdb.getAllNodes.asScala.toSet)

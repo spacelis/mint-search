@@ -3,6 +3,7 @@ package uk.ac.cdrc.mintsearch.ranking
 import org.neo4j.graphdb.Label
 import org.scalatest.{Matchers, WordSpec}
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
+import uk.ac.cdrc.mintsearch.search.SimpleGraphQueryBuilder
 
 import scala.collection.JavaConverters._
 

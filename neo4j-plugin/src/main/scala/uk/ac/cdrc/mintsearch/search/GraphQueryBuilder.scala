@@ -1,11 +1,10 @@
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.search
 
 import java.io.{File, IOException, PrintWriter, StringWriter}
 
-import org.neo4j.cypher.export.CypherResultSubGraph
+import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraphExporter}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.cypher.export.SubGraphExporter
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neo4j.GraphContext
 

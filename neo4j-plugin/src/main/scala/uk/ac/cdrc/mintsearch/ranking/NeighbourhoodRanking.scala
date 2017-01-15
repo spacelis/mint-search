@@ -5,6 +5,7 @@ import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
 import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
 import uk.ac.cdrc.mintsearch.neo4j._
+import uk.ac.cdrc.mintsearch.search.GraphSearchQuery
 
 /**
  * Created by ucfawli on 11/18/16.
