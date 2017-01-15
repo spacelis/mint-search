@@ -1,15 +1,13 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
-import org.neo4j.graphdb.{GraphDatabaseService, Node}
-import org.neo4j.graphdb.traversal.TraversalDescription
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourAwareNode, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode._
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
 
 import scala.collection.JavaConverters._
 
