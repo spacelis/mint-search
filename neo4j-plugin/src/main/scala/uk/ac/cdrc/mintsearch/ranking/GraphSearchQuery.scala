@@ -41,7 +41,7 @@ object GraphSearchQuery {
     fromCypherCreate(sWriter.getBuffer.toString)
   }
 
-  val defaultTempDir = new File("/tmp")
+  val defaultTempDir = new File(System.getProperty("java.io.tmpdir"))
   def mkTempDir(prefix: String = "mintsearch-", suffix: String = ".tmp.d", dir: File = defaultTempDir) = {
     val temp = File.createTempFile(prefix, suffix, dir)
     temp.delete()
