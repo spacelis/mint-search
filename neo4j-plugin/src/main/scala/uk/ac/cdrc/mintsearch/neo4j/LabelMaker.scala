@@ -17,8 +17,3 @@ trait PropertyLabelMaker extends LabelMaker{
     .filter (_ != labelPropKey)
     .map { pName => s"$pName:${n.getProperties(pName).toString}"}
 }
-
-trait HasLabelMaker {
-  val labelMaker: LabelMaker
-}
-

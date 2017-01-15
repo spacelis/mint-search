@@ -5,8 +5,8 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SubGraphEnumerator, WithResource}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SubGraphEnumeratorContext, WithResource}
 
 /**
   * Testing the SubGraphEnumerator
@@ -21,11 +21,12 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val indexManager = new NeighbourAggregatedIndexManager
-      with Neo4JContainer
+      with GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
-      with NeighbourAware
+      with NeighbourAwareContext
+      with SubGraphEnumeratorContext
     {
 
       override val radius: Int = 2
@@ -41,7 +42,6 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "find a connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -55,8 +55,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
 
         WithResource(indexManager.db.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
-          val expanded = sge.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
+          val expanded = indexManager.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
           expanded should contain (nodeB)
           expanded should contain (nodeC)
         }
@@ -65,7 +64,6 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "find a large connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -84,8 +82,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
 
         WithResource(indexManager.db.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
-          val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
+          val expanded = indexManager.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
           expanded should contain (nodes(6))
           expanded should contain (nodes(7))
         }
@@ -94,7 +91,6 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "find another large connect component" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -113,8 +109,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
 
         WithResource(indexManager.db.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
-          val expanded = sge.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
+          val expanded = indexManager.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
           expanded should not contain nodes(6)
           expanded should not contain nodes(7)
         }
@@ -123,7 +118,6 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
     "assemble connect components" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
         // create a simple graph with two order of relationship friend
         val res = session.run(
           """CREATE
@@ -143,8 +137,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
 
 
         WithResource(indexManager.db.beginTx()) { _ =>
-          val sge = SubGraphEnumerator(indexManager.traversalDescription, indexManager.db)
-          val graphs = sge.assembleSubGraph(nodes.toSet).toVector
+          val graphs = indexManager.assembleSubGraph(nodes.toSet).toVector
           graphs(0).nodeIds should contain oneOf(nodes(0), nodes(3))
           graphs(0).nodeIds should contain oneOf(nodes(1), nodes(4))
           graphs(0).nodeIds should contain oneOf(nodes(2), nodes(5))

@@ -5,7 +5,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 /**
   * Created by ucfawli on 08-Jan-17.
   */
-trait Neo4JContainer {
+trait GraphContext {
 
   val db: GraphDatabaseService
 

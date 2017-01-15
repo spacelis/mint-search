@@ -2,9 +2,9 @@ package uk.ac.cdrc.mintsearch.index
 
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.Index
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAware
+import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.neo4j.Neo4JIndex._
-import uk.ac.cdrc.mintsearch.neo4j.{LabelMaker, Neo4JContainer}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
 
 import scala.collection.JavaConverters._
 import scala.pickling._
@@ -14,7 +14,7 @@ import scala.pickling.json._
   * Created by ucfawli on 04-Dec-16.
   */
 trait NeighbourAggregatedIndexManager{
-  self: Neo4JContainer with LabelMaker with NeighbourAware =>
+  self: GraphContext with NeighbourAwareContext with LabelMaker =>
   val indexName: String
 
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)

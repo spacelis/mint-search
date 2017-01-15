@@ -5,8 +5,8 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, WithResource}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, WithResource}
 
 import scala.collection.JavaConverters._
 
@@ -23,11 +23,11 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val indexManager = new NeighbourAggregatedIndexManager
-      with Neo4JContainer
+      with GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
-      with NeighbourAware
+      with NeighbourAwareContext
     {
 
       override val radius: Int = 2

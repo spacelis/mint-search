@@ -1,9 +1,8 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import org.neo4j.graphdb.traversal.TraversalDescription
-import org.neo4j.graphdb.{GraphDatabaseService, Node, Path, Relationship}
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareNode
+import org.neo4j.graphdb.{Node, Path, Relationship}
 import uk.ac.cdrc.mintsearch._
+import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
 
 import scala.collection.JavaConverters._
 
@@ -34,25 +33,23 @@ case class SimpleGraphSnippet(nodes: List[Node], relationships: List[Relationshi
 
 
 /**
- * This class defines a procedure to assemble embeddings from the ranking lists of nodes.
- * The principal in this procedure is to find all connected components of the nodes in
- * the graph store. The connection is defined by the traversalDescription which may not
- * require all the node on the connecting path in the embeddings. So the assembled
- * subgraphs may have extra nodes other than the embeddings to indicate that the nodes in
- * an embeddings are connected.
- *
- * @param td is a Neo4J traversal descriptor that defines the connectivity between two nodes
- * @param db is a Neo4J GraphDatabaseService within with the search carries out
- */
-case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService)(implicit nodeWrapper: Node => NeighbourAwareNode) {
+  * This class defines a procedure to assemble embeddings from the ranking lists of nodes.
+  * The principal in this procedure is to find all connected components of the nodes in
+  * the graph store. The connection is defined by the traversalDescription which may not
+  * require all the node on the connecting path in the embeddings. So the assembled
+  * subgraphs may have extra nodes other than the embeddings to indicate that the nodes in
+  * an embeddings are connected.
+  */
+trait SubGraphEnumeratorContext {
+  self: GraphContext with TraversalStrategy with NeighbourAwareContext =>
 
   /**
-   * This method is the main interface for iterating though the sub graphs from the ranking lists
-   * of nodes.
-   *
-   * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
-   * @return an iterator though the embeddings assembled from the pooled nodes
-   */
+    * This method is the main interface for iterating though the sub graphs from the ranking lists
+    * of nodes.
+    *
+    * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
+    * @return an iterator though the embeddings assembled from the pooled nodes
+    */
   def iterateEmbedding(nodeMatching: NodeMatching): Iterator[SimpleGraphSnippet] = {
     val nodeSet = (for {
       nl <- nodeMatching.values
@@ -62,10 +59,10 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
   }
 
   /**
-   * Assemble graphs from dangled nodes
-   * @param dangled is a set of nodeIds
-   * @return a stream of sub graph stores from the dangled nodes
-   */
+    * Assemble graphs from dangled nodes
+    * @param dangled is a set of nodeIds
+    * @return a stream of sub graph stores from the dangled nodes
+    */
   def assembleSubGraph(dangled: Set[NodeId]): Stream[SimpleGraphSnippet] = {
     dangled.toList match {
       case x::xs =>
@@ -78,12 +75,12 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
   }
 
   /**
-   * Expanding a seed set of nodes to its maximum size of sub graph within the graph store
-   * @param seedNodes is a set of nodes
-   * @param range is a set of nodes indicating the boundary of neighbour searching, only
-   *              nodes within the range will be considered in the returned sub graphs
-   * @return return the biggest sub graph expanding from the seed nodes within the range
-   */
+    * Expanding a seed set of nodes to its maximum size of sub graph within the graph store
+    * @param seedNodes is a set of nodes
+    * @param range is a set of nodes indicating the boundary of neighbour searching, only
+    *              nodes within the range will be considered in the returned sub graphs
+    * @return return the biggest sub graph expanding from the seed nodes within the range
+    */
   def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): SimpleGraphSnippet = {
     val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((_, b) => b)
     val nodes = for (n <- nodeIds) yield db.getNodeById(n)
@@ -92,12 +89,12 @@ case class SubGraphEnumerator(td: TraversalDescription, db: GraphDatabaseService
   }
 
   /**
-   * A method defining the intermedia step for expanding a sub graph from a seed set of nodes
-   * @param seedNodes is a set of nodes to start from
-   * @param seedPaths is a set of paths carried forward for later assembling
-   * @param range is the range for sub graph boundaries
-   * @return a series steps towards the maxim range of sub graphs
-   */
+    * A method defining the intermedia step for expanding a sub graph from a seed set of nodes
+    * @param seedNodes is a set of nodes to start from
+    * @param seedPaths is a set of paths carried forward for later assembling
+    * @param range is the range for sub graph boundaries
+    * @return a series steps towards the maxim range of sub graphs
+    */
   def stepExpandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
     val pathToNeighbours = (for {
       nid <- seedNodes & range

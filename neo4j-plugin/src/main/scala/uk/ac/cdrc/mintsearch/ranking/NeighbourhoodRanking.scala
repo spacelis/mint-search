@@ -1,13 +1,10 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.graphdb.traversal.TraversalDescription
-import org.neo4j.graphdb.{Node, Path}
-import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAware, NeighbourAwareNode}
-import uk.ac.cdrc.mintsearch.neo4j.{GraphSnippet, Neo4JContainer, SubGraphEnumerator}
+import org.neo4j.graphdb.Node
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
-
-import scala.collection.JavaConverters._
+import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.neo4j._
 
 /**
  * Created by ucfawli on 11/18/16.
@@ -15,16 +12,11 @@ import scala.collection.JavaConverters._
  */
 
 trait NeighbourhoodRanking extends GraphRanking{
-  self: NeighbourAggregatedIndexManager with Neo4JContainer with NeighbourAware =>
-
-  def traverDescription: TraversalDescription
-
-  def propagate: Path => WeightedLabelSet
+  self: NeighbourAggregatedIndexManager with GraphContext with TraversalStrategy with NeighbourAwareContext with SubGraphEnumeratorContext =>
 
   def measureSimilarity(weightedLabelSet: WeightedLabelSet)
 
   def rankByNode(node: WeightedLabelSet): Iterator[WeightedLabelSet]
-
 
   override def search(gsq: GraphSearchQuery) = ???
 
@@ -37,7 +29,7 @@ trait NeighbourhoodRanking extends GraphRanking{
    * @return an series sub graphs assembled from the node pool
    */
   def matchedEmbeddings(nodeMatching: NodeMatching): Iterator[GraphSnippet] = for {
-    sgs <- SubGraphEnumerator(traverDescription, db).iterateEmbedding(nodeMatching)
+    sgs <- iterateEmbedding(nodeMatching)
   } yield sgs
 }
 

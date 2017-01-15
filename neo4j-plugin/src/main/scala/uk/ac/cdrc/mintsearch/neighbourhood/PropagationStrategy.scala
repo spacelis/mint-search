@@ -7,11 +7,11 @@ import uk.ac.cdrc.mintsearch.neo4j.LabelMaker
 /**
   * Created by ucfawli on 08-Jan-17.
   */
-trait Propagation {
+trait PropagationStrategy {
     def propagate(p: Path): WeightedLabelSet
 }
 
-trait ExponentialPropagation extends Propagation {
+trait ExponentialPropagation extends PropagationStrategy {
   self: LabelMaker =>
 
   val propagationFactor: Double
@@ -23,8 +23,3 @@ trait ExponentialPropagation extends Propagation {
 
   override def toString: String = s"expP$propagationFactor"
 }
-
-trait HasPropagation {
-  val propagation: Propagation
-}
-

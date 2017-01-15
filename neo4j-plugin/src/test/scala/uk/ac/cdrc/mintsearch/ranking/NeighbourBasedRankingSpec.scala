@@ -6,8 +6,8 @@ import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAware, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{Neo4JContainer, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
 
 import scala.collection.JavaConverters._
 
@@ -42,11 +42,11 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val indexManager = new NeighbourAggregatedIndexManager
-      with Neo4JContainer
+      with GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
-      with NeighbourAware
+      with NeighbourAwareContext
     {
 
       override val radius: Int = 2
@@ -62,7 +62,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
     "return a CypherResultSubGraph representing the sub graph store" in new Neo4JFixture {
 
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
+
         // create a simple graph with two order of relationship friend
         val nodeId: Long = session.run(
           """CREATE
@@ -76,6 +76,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
 
         // create a wrapper function
         WithResource(indexManager.db.beginTx()) { _ =>
+          import indexManager.nodeWrapper
           // query the neighbours
           val nodes = (for {
             p <- indexManager.db.getNodeById(nodeId).neighbours()

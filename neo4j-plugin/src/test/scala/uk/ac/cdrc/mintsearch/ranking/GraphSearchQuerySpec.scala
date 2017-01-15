@@ -13,16 +13,16 @@ class GraphSearchQuerySpec extends WordSpec with Matchers{
 
   "A GraphQuery from Cypher" should {
 
-    "handle single node" in  {
-      WithResource(GraphSearchQuery.fromCypherCreate("create (n: Person {name: \"James\"})")) { gq =>
+    "handle single node" in new SimpleGraphQueryBuilder  {
+      WithResource(fromCypherCreate("create (n: Person {name: \"James\"})")) { gq =>
         WithResource(gq.qdb.beginTx()) { _ =>
           gq.qdb.findNodes(Label.label("Person")).asScala.take(1).toList(0).getProperty("name") shouldBe "James"
         }
       }
     }
 
-    "handle two nodes" in  {
-      WithResource(GraphSearchQuery.fromCypherCreate("create (n: Person {name: \"James\"}), (m: Person {name: \"Mary\"})")) { gq =>
+    "handle two nodes" in new SimpleGraphQueryBuilder {
+      WithResource(fromCypherCreate("create (n: Person {name: \"James\"}), (m: Person {name: \"Mary\"})")) { gq =>
         WithResource(gq.qdb.beginTx()) { _ =>
           gq.qdb.findNodes(Label.label("Person")).asScala.take(2).toList map {_.getProperty("name")} shouldBe List("James", "Mary")
         }
