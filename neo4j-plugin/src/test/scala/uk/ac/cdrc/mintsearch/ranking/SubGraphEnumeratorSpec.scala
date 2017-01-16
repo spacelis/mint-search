@@ -4,7 +4,6 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SubGraphEnumeratorContext, WithResource}
 
@@ -20,8 +19,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
     lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val indexManager = new NeighbourAggregatedIndexManager
-      with GraphContext
+    val context = new GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
@@ -32,8 +30,7 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
 
-      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-      override val labelPropKey: String = s"__nagg_$radius"
+      override val labelStorePropKey: String = s"__nagg_$radius"
       override val db: GraphDatabaseService = neo4jServer.graph()
     }
   }
@@ -54,8 +51,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
 
-        WithResource(indexManager.db.beginTx()) { _ =>
-          val expanded = indexManager.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
+        WithResource(context.db.beginTx()) { _ =>
+          val expanded = context.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC) ).nodes map {_.getId}
           expanded should contain (nodeB)
           expanded should contain (nodeC)
         }
@@ -81,8 +78,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(indexManager.db.beginTx()) { _ =>
-          val expanded = indexManager.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
+        WithResource(context.db.beginTx()) { _ =>
+          val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.toSet ).nodes map {_.getId}
           expanded should contain (nodes(6))
           expanded should contain (nodes(7))
         }
@@ -108,8 +105,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(indexManager.db.beginTx()) { _ =>
-          val expanded = indexManager.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
+        WithResource(context.db.beginTx()) { _ =>
+          val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet ).nodes map {_.getId}
           expanded should not contain nodes(6)
           expanded should not contain nodes(7)
         }
@@ -136,8 +133,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers{
         val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
 
-        WithResource(indexManager.db.beginTx()) { _ =>
-          val graphs = indexManager.assembleSubGraph(nodes.toSet).toVector
+        WithResource(context.db.beginTx()) { _ =>
+          val graphs = context.assembleSubGraph(nodes.toSet).toVector
           graphs(0).nodeIds should contain oneOf(nodes(0), nodes(3))
           graphs(0).nodeIds should contain oneOf(nodes(1), nodes(4))
           graphs(0).nodeIds should contain oneOf(nodes(2), nodes(5))

@@ -5,7 +5,6 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
 
@@ -41,8 +40,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
     lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val indexManager = new NeighbourAggregatedIndexManager
-      with GraphContext
+    val context = new GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
@@ -52,8 +50,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
 
-      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-      override val labelPropKey: String = s"__nagg_$radius"
+      override val labelStorePropKey: String = s"__nagg_$radius"
       override val db: GraphDatabaseService = neo4jServer.graph()
     }
   }
@@ -75,16 +72,16 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
           .get(0).asLong()
 
         // create a wrapper function
-        WithResource(indexManager.db.beginTx()) { _ =>
-          import indexManager.nodeWrapper
+        WithResource(context.db.beginTx()) { _ =>
+          import context.nodeWrapper
           // query the neighbours
           val nodes = (for {
-            p <- indexManager.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours()
             n <- p.nodes().asScala
           } yield n).toList
 
           val relationships = (for {
-            p <- indexManager.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours()
             r <- p.relationships().asScala
           } yield r).toList
 

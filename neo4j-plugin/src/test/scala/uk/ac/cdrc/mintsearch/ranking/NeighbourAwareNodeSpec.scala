@@ -4,7 +4,6 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, WithResource}
 
@@ -22,8 +21,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
     lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val indexManager = new NeighbourAggregatedIndexManager
-      with GraphContext
+    val context = new GraphContext
       with ExponentialPropagation
       with PropertyLabelMaker
       with NeighbourhoodByRadius
@@ -33,8 +31,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
 
-      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-      override val labelPropKey: String = s"__nagg_$radius"
+      override val labelStorePropKey: String = s"__nagg_$radius"
       override val db: GraphDatabaseService = neo4jServer.graph()
     }
   }
@@ -43,7 +40,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
 
     "return paths to neighbours" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
+        import context.nodeWrapper
         // create a simple graph with two order of relationship friend
         val nodeId: Long = session.run(
           """CREATE
@@ -56,10 +53,10 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
           .get(0).asLong()
 
         // create a wrapper function
-        WithResource(indexManager.db.beginTx()) { _ =>
+        WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- indexManager.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours()
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")
@@ -71,7 +68,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
 
     "return many neighbours" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
+        import context.nodeWrapper
         // create a simple graph with two order of relationship friend
         val nodeId: Long = session.run(
           """CREATE
@@ -87,10 +84,10 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
           .get(0).asLong()
 
         // create a wrapper function
-        WithResource(indexManager.db.beginTx()) { _ =>
+        WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- indexManager.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours()
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")
@@ -103,7 +100,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
 
     "return all neighbours within 2 hops" in new Neo4JFixture {
       WithResource(driver.session()) { session =>
-        import indexManager.nodeWrapper
+        import context.nodeWrapper
         // create a simple graph with two order of relationship friend
         val nodeId: Long = session.run(
           """CREATE
@@ -118,10 +115,10 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers{
           .get(0).asLong()
 
         // create a wrapper function
-        WithResource(indexManager.db.beginTx()) { _ =>
+        WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- indexManager.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours()
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")
