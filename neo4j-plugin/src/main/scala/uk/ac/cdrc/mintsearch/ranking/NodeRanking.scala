@@ -1,12 +1,17 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
 
 /**
   * Created by ucfawli on 15-Jan-17.
   */
 trait NodeRanking {
-  self: NeighbourAggregatedIndexReader =>
-  def rankByNode(node: WeightedLabelSet): Iterator[WeightedLabelSet]
+  def rankByNode(ref: WeightedLabelSet, seq: Seq[WeightedLabelSet]): Iterator[WeightedLabelSet]
+}
+
+trait SimpleNodeRanking extends NodeRanking{
+  self: NeighbourSimilarity =>
+  override def rankByNode(ref: WeightedLabelSet, seq: Seq[WeightedLabelSet]): Seq[WeightedLabelSet] = {
+    (for (w <- seq) yield (w, measureSimilarity(w, ref))).sortBy(_._2) map {_._1}
+  }
 }

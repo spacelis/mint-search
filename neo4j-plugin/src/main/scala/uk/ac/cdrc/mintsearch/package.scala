@@ -28,7 +28,7 @@ package object mintsearch {
     * A class for adding operators to Map[String, Double] aliased to WeightedLabelSet
     * @param inner a value of type Map[String, Double]
     */
-  class WeightedLabelSetWrapper(val inner: WeightedLabelSet) {
+  case class WeightedLabelSetWrapper(inner: WeightedLabelSet) {
     def ~(other: WeightedLabelSetWrapper): WeightedLabelSet = {
       inner map { case (k, v) => (k, max(0.0, v - other.inner.getOrElse(k, 0.0))) }
     }
