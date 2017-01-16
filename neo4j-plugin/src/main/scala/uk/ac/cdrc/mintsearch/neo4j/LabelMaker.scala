@@ -8,12 +8,12 @@ import scala.collection.JavaConverters._
   * Created by ucfawli on 08-Jan-17.
   */
 trait LabelMaker {
-  val labelPropKey: String
+  val labelStorePropKey: String
   def collectLabels(n: Node): Seq[String]
 }
 
 trait PropertyLabelMaker extends LabelMaker{
   override def collectLabels(n: Node) = n.getPropertyKeys.asScala.toSeq
-    .filter (_ != labelPropKey)
+    .filter (_ != labelStorePropKey)
     .map { pName => s"$pName:${n.getProperties(pName).toString}"}
 }

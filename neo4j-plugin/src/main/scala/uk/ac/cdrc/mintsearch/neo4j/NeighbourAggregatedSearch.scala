@@ -4,7 +4,7 @@ import java.util.stream.{Stream => JStream}
 
 import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexManager
+import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 
 import scala.collection.JavaConverters._
@@ -15,7 +15,7 @@ import scala.compat.java8.StreamConverters._
   */
 class NeighbourAggregatedSearch extends Neo4JProcedure {
 
-  val indexManager = new NeighbourAggregatedIndexManager
+  val indexManager = new NeighbourAggregatedIndexReader
     with GraphContext
     with ExponentialPropagation
     with PropertyLabelMaker
@@ -27,7 +27,7 @@ class NeighbourAggregatedSearch extends Neo4JProcedure {
     override val propagationFactor: Double = 0.5
 
     override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-    override val labelPropKey: String = s"__nagg_$radius"
+    override val labelStorePropKey: String = s"__nagg_$radius"
     override val db: GraphDatabaseService = NeighbourAggregatedSearch.this.db
   }
 

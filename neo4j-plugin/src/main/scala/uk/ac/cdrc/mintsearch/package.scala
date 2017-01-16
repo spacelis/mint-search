@@ -37,6 +37,7 @@ package object mintsearch {
       this.~(other) filter {_._2 > 0.0}
     }
 
+    def tokenized: String = inner.keySet mkString " "
   }
 
   /**
