@@ -11,7 +11,7 @@ trait NodeRanking {
 
 trait SimpleNodeRanking extends NodeRanking{
   self: NeighbourSimilarity =>
-  override def rankByNode(ref: WeightedLabelSet, seq: Seq[WeightedLabelSet]): Seq[WeightedLabelSet] = {
-    (for (w <- seq) yield (w, measureSimilarity(w, ref))).sortBy(_._2) map {_._1}
+  override def rankByNode(ref: WeightedLabelSet, seq: Seq[WeightedLabelSet]): Iterator[WeightedLabelSet] = {
+    ((for (w <- seq) yield (w, measureSimilarity(w, ref))).sortBy(_._2) map {_._1}).toIterator
   }
 }

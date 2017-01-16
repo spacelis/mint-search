@@ -1,5 +1,6 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
+import org.neo4j.cypher.export.CypherResultSubGraph
 import org.neo4j.graphdb.{Node, Path, Relationship}
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
@@ -10,25 +11,25 @@ import scala.collection.JavaConverters._
  * Created by ucfawli on 11/22/16.
  */
 
-trait GraphSnippet {
-  def addNode(n: Node)
-  def addNodes(ns: Iterable[Node])
-  def addRelationship(r: Relationship)
-  def addRelationships(rs: Iterable[Relationship])
-}
-
 /**
  * This class is an intermediate result collecting bin as a counter part in scala for
  * Neo4J's class implementing SubGraph
  * @param nodes the nodes in a sub graph
  * @param relationships the relationships in a sub graph
  */
-case class SimpleGraphSnippet(nodes: List[Node], relationships: List[Relationship]) extends GraphSnippet{
-  def addNode(n: Node) = SimpleGraphSnippet(n :: nodes, relationships)
-  def addNodes(ns: Iterable[Node]) = SimpleGraphSnippet(ns.toList ++ nodes, relationships)
-  def addRelationship(r: Relationship) = SimpleGraphSnippet(nodes, r :: relationships)
-  def addRelationships(rs: Iterable[Relationship]) = SimpleGraphSnippet(nodes, rs.toList ++ relationships)
+case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
+  def addNode(n: Node) = GraphSnippet(n :: nodes, relationships)
+  def addNodes(ns: Iterable[Node]) = GraphSnippet(ns.toList ++ nodes, relationships)
+  def addRelationship(r: Relationship) = GraphSnippet(nodes, r :: relationships)
+  def addRelationships(rs: Iterable[Relationship]) = GraphSnippet(nodes, rs.toList ++ relationships)
   lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
+
+  def toNeo4JSubGraph: CypherResultSubGraph = {
+    val sg = new CypherResultSubGraph()
+    for { n <- nodes} sg add n
+    for { r <- relationships} sg add r
+    sg
+  }
 }
 
 
@@ -50,7 +51,7 @@ trait SubGraphEnumeratorContext {
     * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
     * @return an iterator though the embeddings assembled from the pooled nodes
     */
-  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[SimpleGraphSnippet] = {
+  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[GraphSnippet] = {
     val nodeSet = (for {
       nl <- nodeMatching.values
       n <- nl
@@ -63,7 +64,7 @@ trait SubGraphEnumeratorContext {
     * @param dangled is a set of nodeIds
     * @return a stream of sub graph stores from the dangled nodes
     */
-  def assembleSubGraph(dangled: Set[NodeId]): Stream[SimpleGraphSnippet] = {
+  def assembleSubGraph(dangled: Set[NodeId]): Stream[GraphSnippet] = {
     dangled.toList match {
       case x::xs =>
         val seed = dangled.take(1)
@@ -81,11 +82,11 @@ trait SubGraphEnumeratorContext {
     *              nodes within the range will be considered in the returned sub graphs
     * @return return the biggest sub graph expanding from the seed nodes within the range
     */
-  def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): SimpleGraphSnippet = {
+  def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): GraphSnippet = {
     val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((_, b) => b)
     val nodes = for (n <- nodeIds) yield db.getNodeById(n)
     val relationships = (for (p <- path.values; r <- p.relationships().asScala) yield r.getId) map db.getRelationshipById
-    SimpleGraphSnippet(nodes.toList, relationships.toList)
+    GraphSnippet(nodes.toList, relationships.toList)
   }
 
   /**

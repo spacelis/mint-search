@@ -6,7 +6,7 @@ import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SimpleGraphSnippet, WithResource}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, GraphSnippet, PropertyLabelMaker, WithResource}
 
 import scala.collection.JavaConverters._
 
@@ -85,7 +85,7 @@ class NeighbourBasedRankingSpec extends WordSpec with Matchers{
             r <- p.relationships().asScala
           } yield r).toList
 
-          val sgs = SimpleGraphSnippet(nodes, relationships)
+          val sgs = GraphSnippet(nodes, relationships)
           val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
           sgsNodeNames should be (Set("Alice", "Bob", "Carl"))
         }

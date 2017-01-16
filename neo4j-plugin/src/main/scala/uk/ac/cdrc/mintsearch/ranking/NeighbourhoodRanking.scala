@@ -1,6 +1,6 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.graphdb.Node
+import org.neo4j.cypher.export.SubGraph
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
 import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
@@ -19,10 +19,14 @@ trait NeighbourhoodRanking extends GraphRanking{
     with NeighbourAwareContext
     with NeighbourAggregatedIndexReader
     with NeighbourAggregatedAnalyzer
+    with NodeRanking
     with SubGraphEnumeratorContext =>
 
 
-  override def search(gsq: GraphSearchQuery): Iterator[GraphSnippet] = ???
+  override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
+    val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (getSimilarNodes(wls).toList map {_.getId})
+    matchedEmbeddings(nodeMatching) map {_.toNeo4JSubGraph}
+  }
 
 
   /**

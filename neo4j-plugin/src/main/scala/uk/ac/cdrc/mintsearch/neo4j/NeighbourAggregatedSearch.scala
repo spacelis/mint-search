@@ -2,12 +2,14 @@ package uk.ac.cdrc.mintsearch.neo4j
 
 import java.util.stream.{Stream => JStream}
 
-import org.neo4j.graphdb.{GraphDatabaseService, Node}
+import org.neo4j.cypher.export.SubGraph
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
+import uk.ac.cdrc.mintsearch.index.{NeighbourAggregatedIndexReader, NeighbourAggregatedIndexWriter}
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
 
-import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
 
 /**
@@ -15,7 +17,29 @@ import scala.compat.java8.StreamConverters._
   */
 class NeighbourAggregatedSearch extends Neo4JProcedure {
 
-  val indexManager = new NeighbourAggregatedIndexReader
+  val graphSearcher = new NeighbourhoodRanking
+    with NeighbourAggregatedIndexReader
+    with GraphContext
+    with ExponentialPropagation
+    with PropertyLabelMaker
+    with NeighbourhoodByRadius
+    with NeighbourAwareContext
+    with NeighbourAggregatedAnalyzer
+    with SimpleNeighbourSimilarity
+    with SimpleNodeRanking
+    with SubGraphEnumeratorContext
+    with SimpleGraphQueryBuilder
+  {
+
+    override val radius: Int = 2
+    override val propagationFactor: Double = 0.5
+
+    override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
+    override val labelStorePropKey: String = s"__nagg_$radius"
+    override val db: GraphDatabaseService = NeighbourAggregatedSearch.this.db
+  }
+
+  val indexWriter = new NeighbourAggregatedIndexWriter
     with GraphContext
     with ExponentialPropagation
     with PropertyLabelMaker
@@ -30,47 +54,25 @@ class NeighbourAggregatedSearch extends Neo4JProcedure {
     override val labelStorePropKey: String = s"__nagg_$radius"
     override val db: GraphDatabaseService = NeighbourAggregatedSearch.this.db
   }
-
   /**
     *
-    * @param propName the property name for the labels used in the index
-    * @param relType  the name of the relationtype used in the index the index
-    * @param query    the lucene query.
+    * @param query    A cypher statement for creating a graph to search with
     * @return the nodes found by the query
     */
   @Procedure("mint.nagg_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
-  def search(
-              @Name("relType") relType: String,
-              @Name("propName") propName: String,
-              @Name("query") query: String
-            ): JStream[SearchHit] = {
-    Option(db.index().forNodes(indexManager.indexName)) match {
-      case Some(index) => index.query(query).iterator().asScala.map((n: Node) => new SearchHit(n)).seqStream
-      case None => JStream.empty()
-    }
+  def search( @Name("query") query: String ): JStream[SubGraph] = {
+    graphSearcher.search(graphSearcher.fromCypherCreate(query)).seqStream
   }
 
   /**
-    *
-    * @param nodeId   the id of the node to index
-    * @param relType  the relation type used as neighboring
-    * @param propName the property name for the labels, the labels should be stored as a space-separated words
-    * @param depth    the label propagation range, i.e., number of hops a label can propagate though neighbor nodes
-    * @param alpha    the alpha (propagating damper) and 0 < alpha < 1, i.e., labels are propagated to the neighbor with
-    *                 a less weight
+    * Create a Neighbour based index for all nodes
     */
   @Procedure("mint.nagg_index")
   @PerformsWrites
-  def index(
-             @Name("nodeId") nodeId: Long,
-             @Name("relType") relType: String,
-             @Name("propName") propName: String,
-             @Name("depth") depth: Long,
-             @Name("alpha") alpha: Double
-           ): Unit = {
+  def index(): Unit = {
 
-    indexManager.index()
+    indexWriter.index()
   }
 }
 
