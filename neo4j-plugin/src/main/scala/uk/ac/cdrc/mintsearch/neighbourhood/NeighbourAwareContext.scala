@@ -7,9 +7,13 @@ import uk.ac.cdrc.mintsearch.neo4j.GraphContext
 import scala.collection.JavaConverters._
 
 /**
- * Created by ucfawli on 19-Nov-16.
+ * Neighbourhood is the core concept in MintSearch.
+ * A node is indexed by its neighbours but itself.
  */
 
+/**
+  * This trait provides methods and objects to find neighbours in the graph
+  */
 trait NeighbourAwareContext {
   self: GraphContext with TraversalStrategy with PropagationStrategy =>
 
@@ -33,6 +37,11 @@ trait NeighbourAwareContext {
     } yield path
 
 
+    /**
+      * Find paths to neighbours within a given subset
+      * @param subset
+      * @return An iterator though the paths leading to the neighbour nodes
+      */
     def generalNeighboursIn(subset: Set[NodeId]): Iterator[Path] = for {
       path <- neighbours()
       if subset contains path.endNode().getId
@@ -40,6 +49,10 @@ trait NeighbourAwareContext {
 
   }
 
+  /**
+    * A wrapping class for nodes to add neighbourhood related function to them
+    * @param node A node to wrap
+    */
   case class NeighbourAwareNode(override val node: Node) extends NeighbourVisitor(node) {
 
     /**
@@ -54,6 +67,11 @@ trait NeighbourAwareContext {
     }
   }
 
+  /**
+    * An implicit converter for node to wrapped node.
+    * @param node A node to wrap
+    * @return A wrapped node with neighbourhood related functions
+    */
   implicit def nodeWrapper(node: Node): NeighbourAwareNode = NeighbourAwareNode(node)
 }
 

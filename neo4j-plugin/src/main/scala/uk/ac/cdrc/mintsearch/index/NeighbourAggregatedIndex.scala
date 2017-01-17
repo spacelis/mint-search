@@ -13,16 +13,28 @@ import scala.pickling._
 import scala.pickling.json._
 
 /**
-  * Created by ucfawli on 04-Dec-16.
+  * Neo4J's bundled lucene is used for node indexing and search.
+  * Alternative indexing/search facility can also be used here.
+  * For example, MapDB may be a good choice.
   */
 
+
+/**
+  * No text processing is configured as full text search is not the target of
+  * MintSearch. Later can be refactored to include full text indexing which allows
+  * text processing such as stemming, stopping words.
+  */
 trait IndexManager extends GraphContext {
   val indexName: String
 
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)
 }
 
-trait NeighbourAggregatedIndexReader extends  IndexManager{
+/**
+  * Reading the Lucene index for getting a list of potential matched nodes.
+  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
+  */
+trait NeighbourAggregatedIndexReader extends IndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
   import uk.ac.cdrc.mintsearch.asWightedLabelSetWrapper
 
@@ -31,7 +43,10 @@ trait NeighbourAggregatedIndexReader extends  IndexManager{
   }
 }
 
-trait NeighbourAggregatedIndexWriter extends  IndexManager{
+/**
+  * Building a node index based on nodes' neighbourhoods using the Lucene.
+  */
+trait NeighbourAggregatedIndexWriter extends IndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   def index(n: Node): Unit = {
