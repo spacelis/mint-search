@@ -1,11 +1,11 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import java.util.stream.{Stream => JStream}
+import java.util.stream.{ Stream => JStream }
 
 import org.neo4j.graphdb.index.IndexManager
-import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
-import org.neo4j.graphdb.{Node, RelationshipType}
-import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
+import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
+import org.neo4j.graphdb.{ Node, RelationshipType }
+import org.neo4j.procedure.{ Name, PerformsWrites, Procedure }
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._

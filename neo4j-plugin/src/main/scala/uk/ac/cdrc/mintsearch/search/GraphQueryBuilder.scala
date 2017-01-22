@@ -1,8 +1,8 @@
 package uk.ac.cdrc.mintsearch.search
 
-import java.io.{File, IOException, PrintWriter, StringWriter}
+import java.io.{ File, IOException, PrintWriter, StringWriter }
 
-import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraphExporter}
+import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraphExporter }
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import uk.ac.cdrc.mintsearch._
@@ -14,7 +14,7 @@ import uk.ac.cdrc.mintsearch.neo4j.GraphContext
 
 trait GraphQueryBuilder
 
-trait GraphSearchQuery extends AutoCloseable{
+trait GraphSearchQuery extends AutoCloseable {
   import GraphQueryBuilder._
   val qdbStore: File = mkTempDir()
   val qdb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabase(qdbStore)
@@ -24,7 +24,7 @@ trait GraphSearchQuery extends AutoCloseable{
   }
 }
 
-trait SimpleGraphQueryBuilder extends GraphQueryBuilder{
+trait SimpleGraphQueryBuilder extends GraphQueryBuilder {
 
   case class SimpleQuery() extends GraphSearchQuery
 
@@ -36,7 +36,7 @@ trait SimpleGraphQueryBuilder extends GraphQueryBuilder{
 
 }
 
-trait DependentGraphQueryBuilder extends SimpleGraphQueryBuilder{
+trait DependentGraphQueryBuilder extends SimpleGraphQueryBuilder {
   self: GraphContext =>
 
   def fromNeighbourHood(nodeId: NodeId, range: Int): GraphSearchQuery = {

@@ -1,13 +1,12 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
 /**
-  * Coming from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
-  * with adaption for throwing exceptions as required for running tests
-  */
-
+ * Coming from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
+ * with adaption for throwing exceptions as required for running tests
+ */
 
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object WithResource {
   def apply[C <: AutoCloseable, R](resource: => C)(f: C => R): R =
@@ -15,14 +14,12 @@ object WithResource {
       try {
         val returnValue = f(resourceInstance)
         Try(resourceInstance.close()).map(_ => returnValue)
-      }
-      catch {
+      } catch {
         case NonFatal(exceptionInFunction) =>
           try {
             resourceInstance.close()
             Failure(exceptionInFunction)
-          }
-          catch {
+          } catch {
             case NonFatal(exceptionInClose) =>
               exceptionInFunction.addSuppressed(exceptionInClose)
               Failure(exceptionInFunction)

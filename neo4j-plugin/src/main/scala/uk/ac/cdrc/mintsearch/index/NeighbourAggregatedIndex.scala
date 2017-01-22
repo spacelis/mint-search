@@ -5,25 +5,24 @@ import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.neo4j.Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
+import uk.ac.cdrc.mintsearch.neo4j.{ GraphContext, LabelMaker }
+import uk.ac.cdrc.mintsearch.ranking.{ NeighbourSimilarity, NodeRanking }
 
 import scala.collection.JavaConverters._
 import scala.pickling._
 import scala.pickling.json._
 
 /**
-  * Neo4J's bundled lucene is used for node indexing and search.
-  * Alternative indexing/search facility can also be used here.
-  * For example, MapDB may be a good choice.
-  */
-
+ * Neo4J's bundled lucene is used for node indexing and search.
+ * Alternative indexing/search facility can also be used here.
+ * For example, MapDB may be a good choice.
+ */
 
 /**
-  * No text processing is configured as full text search is not the target of
-  * MintSearch. Later can be refactored to include full text indexing which allows
-  * text processing such as stemming, stopping words.
-  */
+ * No text processing is configured as full text search is not the target of
+ * MintSearch. Later can be refactored to include full text indexing which allows
+ * text processing such as stemming, stopping words.
+ */
 trait IndexManager extends GraphContext {
   val indexName: String
 
@@ -31,9 +30,9 @@ trait IndexManager extends GraphContext {
 }
 
 /**
-  * Reading the Lucene index for getting a list of potential matched nodes.
-  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
-  */
+ * Reading the Lucene index for getting a list of potential matched nodes.
+ * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
+ */
 trait NeighbourAggregatedIndexReader extends IndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
   import uk.ac.cdrc.mintsearch.asWightedLabelSetWrapper
@@ -44,8 +43,8 @@ trait NeighbourAggregatedIndexReader extends IndexManager {
 }
 
 /**
-  * Building a node index based on nodes' neighbourhoods using the Lucene.
-  */
+ * Building a node index based on nodes' neighbourhoods using the Lucene.
+ */
 trait NeighbourAggregatedIndexWriter extends IndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)

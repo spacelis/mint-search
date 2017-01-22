@@ -3,31 +3,22 @@ package uk.ac.cdrc.mintsearch.ranking
 import org.neo4j.cypher.export.SubGraph
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
-import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
 import uk.ac.cdrc.mintsearch.neo4j._
-import uk.ac.cdrc.mintsearch.search.{GraphSearchQuery, NeighbourAggregatedAnalyzer}
+import uk.ac.cdrc.mintsearch.search.{ GraphSearchQuery, NeighbourAggregatedAnalyzer }
 
 /**
  * Created by ucfawli on 11/18/16.
  *
  */
 
-trait NeighbourhoodRanking extends GraphRanking{
-  self: NeighbourAggregatedIndexReader
-    with GraphContext
-    with TraversalStrategy
-    with NeighbourAwareContext
-    with NeighbourAggregatedIndexReader
-    with NeighbourAggregatedAnalyzer
-    with NodeRanking
-    with SubGraphEnumeratorContext =>
-
+trait NeighbourhoodRanking extends GraphRanking {
+  self: NeighbourAggregatedIndexReader with GraphContext with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedIndexReader with NeighbourAggregatedAnalyzer with NodeRanking with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
-    val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (getSimilarNodes(wls).toList map {_.getId})
-    matchedEmbeddings(nodeMatching) map {_.toNeo4JSubGraph}
+    val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (getSimilarNodes(wls).toList map { _.getId })
+    matchedEmbeddings(nodeMatching) map { _.toNeo4JSubGraph }
   }
-
 
   /**
    * Return `CypherResultSubGraph`s from

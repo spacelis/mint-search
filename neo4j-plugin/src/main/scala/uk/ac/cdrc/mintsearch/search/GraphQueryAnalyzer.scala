@@ -8,13 +8,13 @@ import uk.ac.cdrc.mintsearch.neo4j.WithResource
 import scala.collection.JavaConverters._
 
 /**
-  * Created by ucfawli on 15-Jan-17.
-  */
+ * Created by ucfawli on 15-Jan-17.
+ */
 trait GraphQueryAnalyzer
 
 trait NeighbourAggregatedAnalyzer extends GraphQueryAnalyzer {
   self: NeighbourAwareContext =>
-  def analyze(q: GraphSearchQuery): GraphDoc = WithResource (q.qdb.beginTx()) {session =>
+  def analyze(q: GraphSearchQuery): GraphDoc = WithResource(q.qdb.beginTx()) { session =>
     mkGraphDoc(q.qdb.getAllNodes.asScala.toSet)
   }
   def mkGraphDoc(nodeSet: Set[Node]): GraphDoc =
