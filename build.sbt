@@ -66,10 +66,12 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "test",
       "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
       "org.neo4j" % "neo4j-kernel" % neo4j_version % "test",
+      "org.neo4j" % "neo4j-graph-algo" % neo4j_version % "test",
       "com.sun.jersey" % "jersey-core" % "1.19" % "test",
       "com.sun.jersey" % "jersey-server" % "1.19" % "test",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-    )
+    ),
+    parallelExecution in Test := false
   )
 
 devServerStartTask := {
