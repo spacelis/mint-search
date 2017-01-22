@@ -10,7 +10,7 @@ import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, WithResour
 import scala.collection.JavaConverters._
 
 /**
- * Created by ucfawli on 21-Jan-17.
+ *  Tests for propagation strategies
  */
 class ExponentialPropagationSpec extends WordSpec with Matchers {
 
@@ -47,11 +47,11 @@ class ExponentialPropagationSpec extends WordSpec with Matchers {
           .get(0).asLong()
         WithResource(context.db.beginTx()) { _ =>
           val nodeA = context.db.getNodeById(nodeIdA)
-          val friendAB = nodeA.getRelationships.asScala.toList(0)
+          val friendAB = nodeA.getRelationships.asScala.toList.head
           val builder: PathImpl.Builder = new PathImpl.Builder(nodeA)
           val path = builder.push(friendAB).build()
           context.propagate(path) should be(Map("name:Bob" -> 0.5, "gender:Male" -> 0.5))
-          val path2 = builder.push(friendAB).push(friendAB.getEndNode.getRelationships.asScala.toList(0)).build
+          val path2 = builder.push(friendAB).push(friendAB.getEndNode.getRelationships.asScala.toList.head).build
           context.propagate(path2) should be(Map("name:Carl" -> 0.25, "gender:Male" -> 0.25))
         }
       }
