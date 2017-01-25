@@ -27,10 +27,6 @@ class ExponentialPropagationSpec extends WordSpec with Matchers {
     }
   }
 
-  class Friendship extends RelationshipType {
-    override def name(): String = "Friend"
-  }
-
   "PropertyLabelMaker" should {
     "collect labels into a WLS" in new Neo4JFixture {
       WithResource(driver.session()) { session =>

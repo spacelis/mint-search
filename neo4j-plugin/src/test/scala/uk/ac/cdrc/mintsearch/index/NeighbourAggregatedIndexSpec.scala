@@ -15,14 +15,10 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 import scala.collection.JavaConverters._
 
-class NeighbourAggregatedIndexSpec extends WordSpec with Matchers {
+class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
 
-  trait Neo4JFixture {
-    private val _builder = TestServerBuilders.newInProcessBuilder()
-    def builder: TestServerBuilder = _builder
-    lazy val neo4jServer: ServerControls = builder.newServer()
-    lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-
+  case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
+    val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
     val indexWriter = new NeighbourAggregatedIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
       override val radius: Int = 2
@@ -41,11 +37,22 @@ class NeighbourAggregatedIndexSpec extends WordSpec with Matchers {
       override val db: GraphDatabaseService = neo4jServer.graph()
       override val indexName: String = "ness_index"
     }
+
+    override def close(): Unit = {
+      neo4jServer.close()
+    }
+  }
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
+    }
   }
 
   "A index writer" should {
-    "write wls to index" in new Neo4JFixture {
-      WithResource(driver.session()) { session =>
+    "write wls to index" in { f =>
+      WithResource(f.driver.session()) { session =>
         val res = session.run(
           """CREATE
             | (a: Person {name:'Alice'}),
@@ -56,20 +63,20 @@ class NeighbourAggregatedIndexSpec extends WordSpec with Matchers {
         )
           .single()
         val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
-        WithResource(indexWriter.db.beginTx()) { tx =>
+        WithResource(f.indexWriter.db.beginTx()) { tx =>
           // query the neighbours
-          indexWriter.index(indexWriter.db.getNodeById(nodeA))
+          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeA))
+          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeB))
+          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeC))
+          f.indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
           tx.success()
         }
       }
-      WithResource(indexReader.db.beginTx()) { tx =>
-        indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
-      }
-      Thread.sleep(60 * 1000)
-      WithResource(driver.session()) { session =>
-        WithResource(indexReader.db.beginTx()) { tx =>
+      WithResource(f.driver.session()) { session =>
+        WithResource(f.indexReader.db.beginTx()) { tx =>
           // query the neighbours
-          indexReader.indexDB.query("*:*").stream().iterator().asScala.toList should be('empty)
+          f.indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 2
+          f.indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 2
           tx.success()
         }
       }

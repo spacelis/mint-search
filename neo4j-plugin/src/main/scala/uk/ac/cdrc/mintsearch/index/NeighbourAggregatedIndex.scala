@@ -26,7 +26,7 @@ import scala.pickling.json._
 trait IndexManager extends GraphContext {
   val indexName: String
 
-  lazy val indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)
+  lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
 }
 
 /**

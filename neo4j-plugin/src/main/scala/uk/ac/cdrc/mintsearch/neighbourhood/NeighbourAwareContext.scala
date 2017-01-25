@@ -20,10 +20,16 @@ trait NeighbourAwareContext {
   class NeighbourVisitor(val node: Node) {
 
     /**
-     * Find all neighbours of this node
+     * Find all neighbours of this node including this node
      * @return an iterator of all the neighbours by the paths to them
      */
-    def neighbours(): Iterator[Path] = traversalDescription.traverse(node).iterator().asScala
+    def generalNeighbours: Iterator[Path] = traversalDescription.traverse(node).iterator().asScala
+
+    /**
+      * Find all neighbours of this node but this node
+      * @return an iterator of all neighbours by the paths to them
+      */
+    def neighbours: Iterator[Path] = generalNeighbours.withFilter(_.endNode().getId != node.getId)
 
     /**
      * Identify all the neighbours in the subset
@@ -32,7 +38,7 @@ trait NeighbourAwareContext {
      * @see neighbours()
      */
     def neighboursIn(subset: Set[NodeId]): Iterator[Path] = for {
-      path <- neighbours()
+      path <- neighbours
       if path.nodes().asScala forall { subset contains _.getId }
     } yield path
 
@@ -42,7 +48,7 @@ trait NeighbourAwareContext {
      * @return An iterator though the paths leading to the neighbour nodes
      */
     def generalNeighboursIn(subset: Set[NodeId]): Iterator[Path] = for {
-      path <- neighbours()
+      path <- neighbours
       if subset contains path.endNode().getId
     } yield path
 
@@ -60,7 +66,7 @@ trait NeighbourAwareContext {
      * @return a `WeightedLabelSet` derived from the neighbourhood
      */
     def collectNeighbourLabels: WeightedLabelSet = {
-      val label_weight_parts = for { path <- neighbours() } yield propagate(path)
+      val label_weight_parts = for { path <- neighbours } yield propagate(path)
 
       sum(label_weight_parts) // Aggregate the label weights.
     }
