@@ -1,29 +1,42 @@
+/**
+  * Test LabelMaker
+  */
 package uk.ac.cdrc.mintsearch.neo4j
 
-import org.neo4j.driver.v1.{ Config, Driver, GraphDatabase }
+import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
-import org.scalatest.{ Matchers, WordSpec }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
+import org.scalatest._
+import uk.ac.cdrc.mintsearch.neighbourhood.ExponentialPropagation
 
-/**
- * Created by ucfawli on 21-Jan-17.
- */
-class PropertyLabelMakerSpec extends WordSpec with Matchers {
 
-  trait Neo4JFixture {
-    private val _builder = TestServerBuilders.newInProcessBuilder()
-    def builder: TestServerBuilder = _builder
-    lazy val neo4jServer: ServerControls = builder.newServer()
+class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
+
+  case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
+
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val context = new GraphContext with PropertyLabelMaker {
+    val context = new GraphContext with PropertyLabelMaker with ExponentialPropagation {
       override val labelStorePropKey: String = s"__nagg_0"
       override val db: GraphDatabaseService = neo4jServer.graph()
+      override val propagationFactor: Double = 0.5
+    }
+
+    override def close(): Unit = {
+      neo4jServer.close()
+    }
+  }
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
     }
   }
 
   "PropertyLabelMaker" should {
-    "collect labels into a WLS" in new Neo4JFixture {
+    "collect labels into a WLS" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         val nodeId: Long = session.run(
           """CREATE

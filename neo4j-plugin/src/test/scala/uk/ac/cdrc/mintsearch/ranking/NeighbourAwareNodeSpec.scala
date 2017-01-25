@@ -1,24 +1,23 @@
+/**
+  * Testing NeighbourAwareNode
+  */
+
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
-import uk.ac.cdrc.mintsearch.neo4j.{ GraphContext, PropertyLabelMaker, WithResource }
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, WithResource}
 
 import scala.collection.JavaConverters._
 
-/**
- * Testing NeighbourAwareNode
- */
+class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
 
-class NeighbourAwareNodeSpec extends WordSpec with Matchers {
 
-  trait Neo4JFixture {
-    private val _builder = TestServerBuilders.newInProcessBuilder()
-    def builder: TestServerBuilder = _builder
-    lazy val neo4jServer: ServerControls = builder.newServer()
+  case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
+
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val context = new GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
@@ -29,11 +28,24 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
       override val labelStorePropKey: String = s"__nagg_$radius"
       override val db: GraphDatabaseService = neo4jServer.graph()
     }
+
+    override def close(): Unit = {
+      neo4jServer.close()
+    }
   }
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
+    }
+  }
+
 
   "A neighbour aware node" should {
 
-    "return paths to neighbours" in new Neo4JFixture {
+    "return paths to neighbours" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         import context.nodeWrapper
         // create a simple graph with two order of relationship friend
@@ -52,7 +64,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
         WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- context.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")
@@ -62,7 +74,8 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
       }
     }
 
-    "return many neighbours" in new Neo4JFixture {
+    "return many neighbours" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         import context.nodeWrapper
         // create a simple graph with two order of relationship friend
@@ -84,7 +97,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
         WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- context.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")
@@ -95,7 +108,8 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
       }
     }
 
-    "return all neighbours within 2 hops" in new Neo4JFixture {
+    "return all neighbours within 2 hops" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         import context.nodeWrapper
         // create a simple graph with two order of relationship friend
@@ -116,7 +130,7 @@ class NeighbourAwareNodeSpec extends WordSpec with Matchers {
         WithResource(context.db.beginTx()) { _ =>
           // query the neighbours
           val result = (for {
-            p <- context.db.getNodeById(nodeId).neighbours()
+            p <- context.db.getNodeById(nodeId).neighbours
             n <- p.nodes().asScala
           } yield n.getProperty("name").toString).toSet
           result should contain("Alice")

@@ -1,22 +1,20 @@
+/**
+  * Testing the SubGraphEnumerator
+  */
+
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
-import uk.ac.cdrc.mintsearch.neo4j.{ GraphContext, PropertyLabelMaker, SubGraphEnumeratorContext, WithResource }
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, SubGraphEnumeratorContext, WithResource}
 
-/**
- * Testing the SubGraphEnumerator
- */
+class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
-class SubGraphEnumeratorSpec extends WordSpec with Matchers {
+  case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
 
-  trait Neo4JFixture {
-    private val _builder = TestServerBuilders.newInProcessBuilder()
-    def builder: TestServerBuilder = _builder
-    lazy val neo4jServer: ServerControls = builder.newServer()
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val context = new GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SubGraphEnumeratorContext {
@@ -27,11 +25,24 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers {
       override val labelStorePropKey: String = s"__nagg_$radius"
       override val db: GraphDatabaseService = neo4jServer.graph()
     }
+
+    override def close(): Unit = {
+      neo4jServer.close()
+    }
   }
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
+    }
+  }
+
 
   "A SubGraphEnumerator" should {
 
-    "find a connect component" in new Neo4JFixture {
+    "find a connect component" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         // create a simple graph with two order of relationship friend
         val res = session.run(
@@ -53,7 +64,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers {
       }
     }
 
-    "find a large connect component" in new Neo4JFixture {
+    "find a large connect component" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         // create a simple graph with two order of relationship friend
         val res = session.run(
@@ -80,7 +92,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers {
       }
     }
 
-    "find another large connect component" in new Neo4JFixture {
+    "find another large connect component" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         // create a simple graph with two order of relationship friend
         val res = session.run(
@@ -107,7 +120,8 @@ class SubGraphEnumeratorSpec extends WordSpec with Matchers {
       }
     }
 
-    "assemble connect components" in new Neo4JFixture {
+    "assemble connect components" in { f =>
+      import f._
       WithResource(driver.session()) { session =>
         // create a simple graph with two order of relationship friend
         val res = session.run(

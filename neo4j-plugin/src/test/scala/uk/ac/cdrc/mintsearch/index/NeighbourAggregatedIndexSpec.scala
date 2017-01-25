@@ -4,14 +4,15 @@
 
 package uk.ac.cdrc.mintsearch.index
 
+import java.util.concurrent.TimeUnit.SECONDS
+
 import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
-import uk.ac.cdrc.mintsearch.neo4j.{ PropertyLabelMaker, WithResource }
-import uk.ac.cdrc.mintsearch.ranking.{ SimpleNeighbourSimilarity, SimpleNodeRanking }
-import java.util.concurrent.TimeUnit.SECONDS
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{PropertyLabelMaker, WithResource}
+import uk.ac.cdrc.mintsearch.ranking.{SimpleNeighbourSimilarity, SimpleNodeRanking}
 
 import scala.collection.JavaConverters._
 
@@ -52,7 +53,8 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
 
   "A index writer" should {
     "write wls to index" in { f =>
-      WithResource(f.driver.session()) { session =>
+      import f._
+      WithResource(driver.session()) { session =>
         val res = session.run(
           """CREATE
             | (a: Person {name:'Alice'}),
@@ -63,20 +65,20 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
         )
           .single()
         val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
-        WithResource(f.indexWriter.db.beginTx()) { tx =>
+        WithResource(indexWriter.db.beginTx()) { tx =>
           // query the neighbours
-          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeA))
-          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeB))
-          f.indexWriter.index(f.indexWriter.db.getNodeById(nodeC))
-          f.indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
+          indexWriter.index(indexWriter.db.getNodeById(nodeA))
+          indexWriter.index(indexWriter.db.getNodeById(nodeB))
+          indexWriter.index(indexWriter.db.getNodeById(nodeC))
+          indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
           tx.success()
         }
       }
-      WithResource(f.driver.session()) { session =>
-        WithResource(f.indexReader.db.beginTx()) { tx =>
+      WithResource(driver.session()) { _ =>
+        WithResource(indexReader.db.beginTx()) { tx =>
           // query the neighbours
-          f.indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 2
-          f.indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 2
+          indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 2
+          indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 2
           tx.success()
         }
       }

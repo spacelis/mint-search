@@ -1,3 +1,6 @@
+/**
+  * Test GraphSearchQuery
+  */
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.graphdb.Label
@@ -7,9 +10,6 @@ import uk.ac.cdrc.mintsearch.search.SimpleGraphQueryBuilder
 
 import scala.collection.JavaConverters._
 
-/**
- * Created by ucfawli on 14-Jan-17.
- */
 class GraphSearchQuerySpec extends WordSpec with Matchers {
 
   "A GraphQuery from Cypher" should {
@@ -17,7 +17,7 @@ class GraphSearchQuerySpec extends WordSpec with Matchers {
     "handle single node" in new SimpleGraphQueryBuilder {
       WithResource(fromCypherCreate("create (n: Person {name: 'James'})")) { gq =>
         WithResource(gq.qdb.beginTx()) { _ =>
-          gq.qdb.findNodes(Label.label("Person")).asScala.take(1).toList(0).getProperty("name") shouldBe "James"
+          gq.qdb.findNodes(Label.label("Person")).asScala.take(1).toList.head.getProperty("name") shouldBe "James"
         }
       }
     }
