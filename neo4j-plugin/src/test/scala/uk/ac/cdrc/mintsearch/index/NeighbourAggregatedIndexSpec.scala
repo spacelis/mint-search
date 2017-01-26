@@ -83,6 +83,42 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
         }
       }
     }
+
+    "only index 2-step neighbours" in { f =>
+      import f._
+      WithResource(driver.session()) { session =>
+        val res = session.run(
+          """CREATE
+            | (a: Person {name:'Alice'}),
+            | (b: Person {name: 'Bob'}),
+            | (c: Person {name: 'Carl'}),
+            | (d: Person {name: 'David'}),
+            | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)
+            | RETURN id(a), id(b), id(c), id(d)""".stripMargin
+        )
+          .single()
+        val Seq(nodeA, nodeB, nodeC, nodeD) = for (i <- 0 to 3) yield res.get(i).asLong
+        WithResource(indexWriter.db.beginTx()) { tx =>
+          // query the neighbours
+          indexWriter.index(indexWriter.db.getNodeById(nodeA))
+          indexWriter.index(indexWriter.db.getNodeById(nodeB))
+          indexWriter.index(indexWriter.db.getNodeById(nodeC))
+          indexWriter.index(indexWriter.db.getNodeById(nodeD))
+          indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
+          tx.success()
+        }
+      }
+      WithResource(driver.session()) { _ =>
+        WithResource(indexReader.db.beginTx()) { tx =>
+          // query the neighbours
+          indexReader.indexDB.query("__nagg_2:name\\:alice").stream().iterator().asScala.toList should have length 2
+          indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 3
+          indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 3
+          indexReader.indexDB.query("__nagg_2:name\\:david").stream().iterator().asScala.toList should have length 2
+          tx.success()
+        }
+      }
+    }
   }
 
 }
