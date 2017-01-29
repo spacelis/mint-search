@@ -102,7 +102,7 @@ trait SubGraphEnumeratorContext {
   def stepExpandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
     val pathToNeighbours = (for {
       nid <- seedNodes & range
-      p <- db.getNodeById(nid).generalNeighboursIn(range)
+      p <- db.getNodeById(nid).NeighboursIn(range)
     } yield p.endNode().getId -> p).toMap
 
     if (pathToNeighbours.isEmpty)

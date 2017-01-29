@@ -66,9 +66,19 @@ class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
           // query the neighbours
           val result = (for {
             p <- context.db.getNodeById(nodeId).neighbours
-            n <- p.nodes().asScala
+            n = p.endNode()
           } yield n.getProperty("name").toString).toSet
-          result should contain("Alice")
+          result should not contain "Alice"
+          result should contain("Bob")
+          result should contain("Carl")
+        }
+        WithResource(context.db.beginTx()) { _ =>
+          // query the neighbours
+          val result = (for {
+            p <- context.db.getNodeById(nodeId).neighbourhood
+            n = p.endNode()
+          } yield n.getProperty("name").toString).toSet
+          result should contain ("Alice")
           result should contain("Bob")
           result should contain("Carl")
         }
@@ -99,9 +109,9 @@ class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
           // query the neighbours
           val result = (for {
             p <- context.db.getNodeById(nodeId).neighbours
-            n <- p.nodes().asScala
+            n = p.endNode
           } yield n.getProperty("name").toString).toSet
-          result should contain("Alice")
+          result should not contain "Alice"
           result should contain("Bob")
           result should contain("Carl")
           result should contain("David")
@@ -132,9 +142,21 @@ class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
           // query the neighbours
           val result = (for {
             p <- context.db.getNodeById(nodeId).neighbours
-            n <- p.nodes().asScala
+            n = p.endNode()
           } yield n.getProperty("name").toString).toSet
-          result should contain("Alice")
+          result should not contain "Alice"
+          result should contain("Bob")
+          result should contain("Carl")
+          result should contain("David")
+        }
+        // create a wrapper function
+        WithResource(context.db.beginTx()) { _ =>
+          // query the neighbours
+          val result = (for {
+            p <- context.db.getNodeById(nodeId).neighbourhood
+            n = p.endNode()
+          } yield n.getProperty("name").toString).toSet
+          result should contain ("Alice")
           result should contain("Bob")
           result should contain("Carl")
           result should contain("David")

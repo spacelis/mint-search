@@ -39,10 +39,9 @@ trait NeighbourNodeIndexReader extends Neo4JIndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
 
   def encodeQuery(labelSet: Set[L]): String = {
-    val query = (for {
+    (for {
       l <- labelSet
-    } yield labelEncodeQuery(l)) mkString " "
-    s"$labelStorePropKey:$query"
+    } yield s"$labelStorePropKey:${labelEncodeQuery(l)}") mkString " "
   }
 
   def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
@@ -57,7 +56,7 @@ trait NeighbourNodeIndexWriter extends Neo4JIndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   def index(n: Node): Unit = {
-    val labelWeights = n.collectNeighbourLabels
+    val labelWeights = n.collectNeighbourhoodLabels
 
     // Indexing the node and store the neighbors' labels in the node's property
     indexDB.remove(n) // Make sure the node will be replaced in the index

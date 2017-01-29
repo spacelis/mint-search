@@ -22,5 +22,5 @@ trait NeighbourAggregatedAnalyzer extends GraphQueryAnalyzer {
     mkGraphDoc(q.qdb.getAllNodes.asScala.toSet)
   }
   def mkGraphDoc(nodeSet: Set[Node]): GraphDoc[L] =
-    (for { n <- nodeSet } yield n.getId -> n.collectNeighbourLabels).toMap
+    (for { n <- nodeSet } yield n.getId -> n.collectNeighbourhoodLabels).toMap
 }
