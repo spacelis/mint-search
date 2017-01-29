@@ -5,8 +5,8 @@ import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.neo4j.Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neo4j.{ GraphContext, LabelMaker }
-import uk.ac.cdrc.mintsearch.ranking.{ NeighbourSimilarity, NodeRanking }
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
+import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
 import scala.collection.JavaConverters._
 import scala.pickling._
@@ -35,11 +35,12 @@ trait IndexManager extends GraphContext {
  */
 trait NeighbourAggregatedIndexReader extends IndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
-  import uk.ac.cdrc.mintsearch.asWightedLabelSetWrapper
 
-  def getSimilarNodes(wls: WeightedLabelSet): Iterator[Node] = {
-    indexDB.query(wls.tokenized).iterator().asScala
-  }
+  def encodeQuery(wls: WeightedLabelSet[L]): String = (for {
+    l <- wls.keySet
+  } yield labelEncodeQuery(l)) mkString " "
+
+  def getSimilarNodes(wls: WeightedLabelSet[L]): Iterator[Node] = indexDB.query(encodeQuery(wls)).iterator().asScala
 }
 
 /**
@@ -53,7 +54,7 @@ trait NeighbourAggregatedIndexWriter extends IndexManager {
 
     // Indexing the node and store the neighbors' labels in the node's property
     indexDB.remove(n) // Make sure the node will be replaced in the index
-    indexDB.add(n, labelStorePropKey, labelWeights.keys mkString " ")
-    n.setProperty(labelStorePropKey, labelWeights.pickle.value)
+    indexDB.add(n, labelStorePropKey, labelWeights.keys map {labelEncode(_)} mkString " ")
+    n.setProperty(labelStorePropKey, labelWeights.map((e) => (labelEncode(e._1), e._2)).pickle.value)
   }
 }

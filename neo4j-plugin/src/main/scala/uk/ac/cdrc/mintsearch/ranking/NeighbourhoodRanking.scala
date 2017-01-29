@@ -13,7 +13,14 @@ import uk.ac.cdrc.mintsearch.search.{ GraphSearchQuery, NeighbourAggregatedAnaly
  */
 
 trait NeighbourhoodRanking extends GraphRanking {
-  self: NeighbourAggregatedIndexReader with GraphContext with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedIndexReader with NeighbourAggregatedAnalyzer with NodeRanking with SubGraphEnumeratorContext =>
+  self: NeighbourAggregatedIndexReader
+    with GraphContext
+    with TraversalStrategy
+    with NeighbourAwareContext
+    with NeighbourAggregatedIndexReader
+    with NeighbourAggregatedAnalyzer
+    with NodeRanking
+    with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
     val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (getSimilarNodes(wls).toList map { _.getId })

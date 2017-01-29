@@ -1,8 +1,8 @@
 package uk.ac.cdrc.mintsearch.neighbourhood
 
-import org.neo4j.graphdb.{ Node, Path }
+import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neo4j.GraphContext
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
 
 import scala.collection.JavaConverters._
 
@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
  * This trait provides methods and objects to find neighbours in the graph
  */
 trait NeighbourAwareContext {
-  self: GraphContext with TraversalStrategy with PropagationStrategy =>
+  self: GraphContext with TraversalStrategy with PropagationStrategy with LabelMaker =>
 
   class NeighbourVisitor(val node: Node) {
 
@@ -65,7 +65,7 @@ trait NeighbourAwareContext {
      * them to a `WeightedLabelSet`
      * @return a `WeightedLabelSet` derived from the neighbourhood
      */
-    def collectNeighbourLabels: WeightedLabelSet = {
+    def collectNeighbourLabels: WeightedLabelSet[L] = {
       val label_weight_parts = for { path <- neighbours } yield propagate(path)
 
       sum(label_weight_parts) // Aggregate the label weights.

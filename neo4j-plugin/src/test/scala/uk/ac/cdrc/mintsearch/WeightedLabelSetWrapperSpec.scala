@@ -8,9 +8,6 @@ import org.scalatest.{Matchers, WordSpec}
 class WeightedLabelSetWrapperSpec extends WordSpec with Matchers {
 
   "NodeWrapper" should {
-    "tokenize WLS" in {
-      WeightedLabelSetWrapper(Map("a" -> 0.5, "b" -> 0.5)).tokenized should be("a b")
-    }
 
     "have cover-diff operation (non-negative subtraction)" in {
       val a = Map("a" -> 1.0, "b" -> 2.0)

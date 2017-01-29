@@ -46,7 +46,7 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
           .single()
           .get(0).asLong()
         WithResource(context.db.beginTx()) { _ =>
-          context.collectLabels(context.db.getNodeById(nodeId)) shouldBe Stream("name:Alice", "gender:Female")
+          context.collectLabels(context.db.getNodeById(nodeId)) shouldBe Stream(("name", "Alice"), ("gender", "Female"))
         }
       }
     }

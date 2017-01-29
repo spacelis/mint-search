@@ -59,9 +59,9 @@ class ExponentialPropagationSpec extends fixture.WordSpec with Matchers {
           val friendAB = nodeA.getRelationships.asScala.toList.head
           val builder: PathImpl.Builder = new PathImpl.Builder(nodeA)
           val path = builder.push(friendAB).build()
-          context.propagate(path) should be(Map("name:Bob" -> 0.5, "gender:Male" -> 0.5))
+          context.propagate(path) should be(Map(("name", "Bob") -> 0.5, ("gender", "Male") -> 0.5))
           val path2 = builder.push(friendAB).push(friendAB.getEndNode.getRelationships.asScala.toList.head).build
-          context.propagate(path2) should be(Map("name:Carl" -> 0.25, "gender:Male" -> 0.25))
+          context.propagate(path2) should be(Map(("name", "Carl") -> 0.25, ("gender", "Male") -> 0.25))
         }
       }
     }

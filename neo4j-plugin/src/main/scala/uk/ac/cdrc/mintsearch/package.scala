@@ -1,10 +1,10 @@
+/**
+  * Utility Definitions of types
+  */
 package uk.ac.cdrc
 
 import scala.math.max
 
-/**
- * Created by ucfawli on 08-Jan-17.
- */
 package object mintsearch {
 
   type NodeId = Long
@@ -12,7 +12,7 @@ package object mintsearch {
   /**
    * A mapping from label to a weight value
    */
-  type WeightedLabelSet = Map[String, Double]
+  type WeightedLabelSet[L] = Map[L, Double]
 
   /**
    * A mapping from a node (by its ID) to a list of nodes (IDs)
@@ -22,22 +22,21 @@ package object mintsearch {
   /**
    * A mapping from node to its weighted label set
    */
-  type GraphDoc = Map[NodeId, WeightedLabelSet]
+  type GraphDoc[L] = Map[NodeId, WeightedLabelSet[L]]
 
   /**
    * A class for adding operators to Map[String, Double] aliased to WeightedLabelSet
    * @param inner a value of type Map[String, Double]
    */
-  case class WeightedLabelSetWrapper(inner: WeightedLabelSet) {
-    def ~(other: WeightedLabelSetWrapper): WeightedLabelSet = {
+  class WeightedLabelSetWrapper[L](val inner: WeightedLabelSet[L]) {
+    def ~(other: WeightedLabelSetWrapper[L]): WeightedLabelSet[L] = {
       inner map { case (k, v) => (k, max(0.0, v - other.inner.getOrElse(k, 0.0))) }
     }
 
-    def ~~(other: WeightedLabelSetWrapper): WeightedLabelSet = {
+    def ~~(other: WeightedLabelSetWrapper[L]): WeightedLabelSet[L] = {
       this.~(other) filter { _._2 > 0.0 }
     }
 
-    def tokenized: String = inner.keySet mkString " "
   }
 
   /**
@@ -45,7 +44,7 @@ package object mintsearch {
    * @param xs a list of WeightedLabelSets
    * @return a WeightedLabelSet in which the labels' weights are summed from xs
    */
-  def sum(xs: TraversableOnce[WeightedLabelSet]): WeightedLabelSet =
+  def sum[L](xs: TraversableOnce[WeightedLabelSet[L]]): WeightedLabelSet[L] =
     xs.flatMap(_.toSeq).toSeq.groupBy(_._1).mapValues(_.map(_._2).sum)
 
   /**
@@ -53,7 +52,7 @@ package object mintsearch {
    * @param wls a value of WeightedLabelSet
    * @return a wrapped Map[String, Double]
    */
-  implicit def asWightedLabelSetWrapper(wls: WeightedLabelSet): WeightedLabelSetWrapper =
+  implicit def asWightedLabelSetWrapper[L](wls: WeightedLabelSet[L]): WeightedLabelSetWrapper[L] =
     new WeightedLabelSetWrapper(wls)
 
 }
