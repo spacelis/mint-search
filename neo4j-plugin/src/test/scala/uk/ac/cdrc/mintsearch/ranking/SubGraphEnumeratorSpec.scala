@@ -8,9 +8,10 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
+import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, SubGraphEnumeratorContext, WithResource}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
@@ -18,7 +19,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val context = new GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SubGraphEnumeratorContext {
+    val context = new GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SubGraphEnumeratorContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

@@ -1,9 +1,9 @@
-package uk.ac.cdrc.mintsearch.neo4j
-
 /**
- * Coming from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
- * with adaption for throwing exceptions as required for running tests
- */
+  * Copied from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
+  * with adaption for throwing exceptions as required for running tests
+  */
+
+package uk.ac.cdrc.mintsearch.neo4j
 
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }

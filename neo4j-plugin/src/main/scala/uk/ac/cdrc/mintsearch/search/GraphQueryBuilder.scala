@@ -1,3 +1,6 @@
+/**
+  * Graph query builders for graph retrieval
+  */
 package uk.ac.cdrc.mintsearch.search
 
 import java.io.{ File, IOException, PrintWriter, StringWriter }
@@ -6,11 +9,7 @@ import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraphExporter }
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neo4j.GraphContext
-
-/**
- * Created by ucfawli on 20-Nov-16.
- */
+import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
 trait GraphQueryBuilder
 
@@ -37,7 +36,7 @@ trait SimpleGraphQueryBuilder extends GraphQueryBuilder {
 }
 
 trait DependentGraphQueryBuilder extends SimpleGraphQueryBuilder {
-  self: GraphContext =>
+  self: GraphDBContext =>
 
   def fromNeighbourHood(nodeId: NodeId, range: Int): GraphSearchQuery = {
     assert(range > 0, "The range must be larger than 0")

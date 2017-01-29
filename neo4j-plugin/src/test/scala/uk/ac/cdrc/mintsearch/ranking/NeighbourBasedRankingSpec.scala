@@ -8,9 +8,10 @@ import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
+import uk.ac.cdrc.mintsearch.graph.GraphSnippet
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, GraphSnippet, WithResource}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 import scala.collection.JavaConverters._
 
@@ -20,7 +21,7 @@ class NeighbourBasedRankingSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val context = new GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+    val context = new GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

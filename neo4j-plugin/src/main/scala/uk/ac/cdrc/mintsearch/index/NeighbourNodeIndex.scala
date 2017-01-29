@@ -11,7 +11,7 @@ import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neo4j.GraphContext
+import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
 import scala.collection.JavaConverters._
@@ -23,7 +23,7 @@ import scala.pickling.json._
  * MintSearch. Later can be refactored to include full text indexing which allows
  * text processing such as stemming, stopping words.
  */
-trait IndexManager extends GraphContext {
+trait IndexManager extends GraphDBContext {
   val indexName: String
 
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)

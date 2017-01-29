@@ -1,12 +1,12 @@
+/**
+  * Testing the fulltext_index/search procedure
+  */
+
 package uk.ac.cdrc.mintsearch.neo4j
 
 import org.scalatest._
 import org.neo4j.driver.v1._
 import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
-
-/**
- * Testing the fulltext_index/search procedure
- */
 
 class TestFullTextIndexSpec extends FlatSpec {
 

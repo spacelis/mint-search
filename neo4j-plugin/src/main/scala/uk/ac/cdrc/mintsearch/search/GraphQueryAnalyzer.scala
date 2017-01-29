@@ -1,3 +1,6 @@
+/**
+  * Defines query analyzers
+  */
 package uk.ac.cdrc.mintsearch.search
 
 import org.neo4j.graphdb.Node
@@ -8,9 +11,6 @@ import uk.ac.cdrc.mintsearch.neo4j.WithResource
 
 import scala.collection.JavaConverters._
 
-/**
- * Created by ucfawli on 15-Jan-17.
- */
 trait GraphQueryAnalyzer {
   self: LabelMaker =>
   def analyze(q: GraphSearchQuery): GraphDoc[L]

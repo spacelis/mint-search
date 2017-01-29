@@ -1,12 +1,12 @@
+/**
+  * Defines how node labels should be propagate to neighbours
+  */
 package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.Path
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.index.LabelMaker
 
-/**
- * Created by ucfawli on 08-Jan-17.
- */
 trait PropagationStrategy {
   self: LabelMaker =>
   def propagate(p: Path): WeightedLabelSet[L]

@@ -17,7 +17,7 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val context = new GraphContext with PropertyLabelMaker with ExponentialPropagation {
+    val context = new GraphDBContext with PropertyLabelMaker with ExponentialPropagation {
       override val labelStorePropKey: String = s"__nagg_0"
       override val db: GraphDatabaseService = neo4jServer.graph()
       override val propagationFactor: Double = 0.5

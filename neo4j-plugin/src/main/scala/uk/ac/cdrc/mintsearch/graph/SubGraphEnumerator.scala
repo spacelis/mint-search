@@ -1,15 +1,15 @@
-package uk.ac.cdrc.mintsearch.neo4j
+/**
+  * Enumerate graphs based on a given set of nodes and their connectivity
+  */
+package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.cypher.export.CypherResultSubGraph
-import org.neo4j.graphdb.{ Node, Path, Relationship }
+import org.neo4j.graphdb.{Node, Path, Relationship}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
+import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
 import scala.collection.JavaConverters._
-
-/**
- * Created by ucfawli on 11/22/16.
- */
 
 /**
  * This class is an intermediate result collecting bin as a counter part in scala for
@@ -32,6 +32,15 @@ case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
   }
 }
 
+object GraphSnippet {
+  implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = {
+    val cypherResultSubGraph = new CypherResultSubGraph()
+    subGraphStore.nodes.foreach(cypherResultSubGraph.add)
+    subGraphStore.relationships.foreach(cypherResultSubGraph.add)
+    cypherResultSubGraph
+  }
+}
+
 /**
  * This class defines a procedure to assemble embeddings from the ranking lists of nodes.
  * The principal in this procedure is to find all connected components of the nodes in
@@ -41,7 +50,7 @@ case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
  * an embeddings are connected.
  */
 trait SubGraphEnumeratorContext {
-  self: GraphContext with TraversalStrategy with NeighbourAwareContext =>
+  self: GraphDBContext with TraversalStrategy with NeighbourAwareContext =>
 
   /**
    * This method is the main interface for iterating though the sub graphs from the ranking lists
