@@ -1,6 +1,6 @@
 /**
-  * Define the common type of index from Neo4J
-  */
+ * Define the common type of index from Neo4J
+ */
 
 package uk.ac.cdrc.mintsearch.index
 

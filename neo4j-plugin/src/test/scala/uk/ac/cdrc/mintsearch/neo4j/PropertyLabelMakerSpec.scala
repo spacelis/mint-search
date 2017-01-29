@@ -1,15 +1,14 @@
 /**
-  * Test LabelMaker
-  */
+ * Test LabelMaker
+ */
 package uk.ac.cdrc.mintsearch.neo4j
 
-import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
+import org.neo4j.driver.v1.{ Config, Driver, GraphDatabase }
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
+import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neighbourhood.ExponentialPropagation
-
 
 class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
 
@@ -38,16 +37,18 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
   "PropertyLabelMaker" should {
     "collect labels into a WLS" in { f =>
       import f._
-      WithResource(driver.session()) { session =>
-        val nodeId: Long = session.run(
-          """CREATE
-            | (a: Person {name:'Alice', gender:'Female'})
-            | RETURN id(a)""".stripMargin
-        )
-          .single()
-          .get(0).asLong()
-        WithResource(context.db.beginTx()) { _ =>
-          context.collectLabels(context.db.getNodeById(nodeId)) shouldBe Stream(("name", "Alice"), ("gender", "Female"))
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          val nodeId: Long = session.run(
+            """CREATE
+              | (a: Person {name:'Alice', gender:'Female'})
+              | RETURN id(a)""".stripMargin
+          )
+            .single()
+            .get(0).asLong()
+          WithResource(context.db.beginTx()) { _ =>
+            context.collectLabels(context.db.getNodeById(nodeId)) shouldBe Stream(("name", "Alice"), ("gender", "Female"))
+          }
         }
       }
     }

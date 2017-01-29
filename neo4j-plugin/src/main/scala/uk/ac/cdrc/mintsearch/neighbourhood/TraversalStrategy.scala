@@ -1,6 +1,6 @@
 /**
-  * Defines which nodes are considered as neighbours
-  */
+ * Defines which nodes are considered as neighbours
+ */
 package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.RelationshipType

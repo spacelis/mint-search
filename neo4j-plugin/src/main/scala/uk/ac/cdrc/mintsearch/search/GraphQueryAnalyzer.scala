@@ -1,6 +1,6 @@
 /**
-  * Defines query analyzers
-  */
+ * Defines query analyzers
+ */
 package uk.ac.cdrc.mintsearch.search
 
 import org.neo4j.graphdb.Node

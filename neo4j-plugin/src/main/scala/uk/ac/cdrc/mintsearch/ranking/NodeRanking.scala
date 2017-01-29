@@ -1,6 +1,6 @@
 /**
-  * Defines node ranking methods
-  */
+ * Defines node ranking methods
+ */
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.WeightedLabelSet

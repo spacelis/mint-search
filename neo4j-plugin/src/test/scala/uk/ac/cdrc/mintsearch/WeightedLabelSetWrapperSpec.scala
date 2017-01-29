@@ -1,9 +1,9 @@
 /**
-  *  Tests for NeighbourAwareNodeWrapper
-  */
+ *  Tests for NeighbourAwareNodeWrapper
+ */
 package uk.ac.cdrc.mintsearch
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 
 class WeightedLabelSetWrapperSpec extends WordSpec with Matchers {
 

@@ -1,15 +1,15 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import java.util.stream.{Stream => JStream}
+import java.util.stream.{ Stream => JStream }
 
 import org.neo4j.cypher.export.SubGraph
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
+import org.neo4j.procedure.{ Name, PerformsWrites, Procedure }
 import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
-import uk.ac.cdrc.mintsearch.index.{NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker}
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
-import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
+import uk.ac.cdrc.mintsearch.index.{ NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker }
+import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
+import uk.ac.cdrc.mintsearch.ranking.{ NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking }
+import uk.ac.cdrc.mintsearch.search.{ NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder }
 
 import scala.compat.java8.StreamConverters._
 
@@ -18,18 +18,7 @@ import scala.compat.java8.StreamConverters._
  */
 class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourhoodRanking
-    with NeighbourNodeIndexReader
-    with GraphDBContext
-    with ExponentialPropagation
-    with PropertyLabelMaker
-    with NeighbourhoodByRadius
-    with NeighbourAwareContext
-    with NeighbourAggregatedAnalyzer
-    with SimpleNeighbourSimilarity
-    with SimpleNodeRanking
-    with SubGraphEnumeratorContext
-    with SimpleGraphQueryBuilder {
+  val graphSearcher = new NeighbourhoodRanking with NeighbourNodeIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
@@ -39,12 +28,7 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
 
-  val indexWriter = new NeighbourNodeIndexWriter
-    with GraphDBContext
-    with ExponentialPropagation
-    with PropertyLabelMaker
-    with NeighbourhoodByRadius
-    with NeighbourAwareContext {
+  val indexWriter = new NeighbourNodeIndexWriter with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5

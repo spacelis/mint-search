@@ -1,6 +1,6 @@
 /**
-  * Testing the fulltext_index/search procedure
-  */
+ * Testing the fulltext_index/search procedure
+ */
 
 package uk.ac.cdrc.mintsearch.neo4j
 
@@ -27,16 +27,21 @@ class TestFullTextIndexSpec extends FlatSpec {
     val session: Session = driver.session()
 
     // And given I have a node in the database
-    val nodeId: Long = session.run("CREATE (p:User {name:'Brookreson'}) RETURN id(p)")
-      .single()
-      .get(0).asLong()
+    try {
+      val nodeId: Long = session.run("CREATE (p:User {name:'Brookreson'}) RETURN id(p)")
+        .single()
+        .get(0).asLong()
 
-    // When I use the index procedure to index a node
-    session.run(s"CALL mint.fulltext_index($nodeId, ['name'])")
+      // When I use the index procedure to index a node
+      session.run(s"CALL mint.fulltext_index($nodeId, ['name'])")
 
-    // Then I can search for that node with lucene query syntax
-    val result: StatementResult = session.run("CALL mint.fulltext_search('User', 'name:Brook*')")
-    assert(result.single().get("nodeId").asLong() === nodeId)
+      // Then I can search for that node with lucene query syntax
+      val result: StatementResult = session.run("CALL mint.fulltext_search('User', 'name:Brook*')")
+      assert(result.single().get("nodeId").asLong() === nodeId)
+    } finally {
+      session.close()
+      neo4jServer.close()
+    }
   }
 
 }

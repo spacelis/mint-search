@@ -1,11 +1,12 @@
 /**
-  * Graph query builders for graph retrieval
-  */
+ * Graph query builders for graph retrieval
+ */
 package uk.ac.cdrc.mintsearch.search
 
-import java.io.{ File, IOException, PrintWriter, StringWriter }
+import java.io.{File, IOException, PrintWriter, StringWriter}
 
-import org.neo4j.cypher.export.{ CypherResultSubGraph, SubGraphExporter }
+import org.apache.commons.io.FileUtils
+import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraphExporter}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import uk.ac.cdrc.mintsearch._
@@ -19,7 +20,8 @@ trait GraphSearchQuery extends AutoCloseable {
   val qdb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabase(qdbStore)
   override def close(): Unit = {
     qdb.shutdown()
-    qdbStore.delete()
+    qdb.isAvailable(5000)
+    FileUtils.deleteDirectory(qdbStore)
   }
 }
 

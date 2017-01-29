@@ -1,12 +1,12 @@
 /**
-  * Enumerate graphs based on a given set of nodes and their connectivity
-  */
+ * Enumerate graphs based on a given set of nodes and their connectivity
+ */
 package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.cypher.export.CypherResultSubGraph
-import org.neo4j.graphdb.{Node, Path, Relationship}
+import org.neo4j.graphdb.{ Node, Path, Relationship }
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
 import scala.collection.JavaConverters._

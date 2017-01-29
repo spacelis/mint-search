@@ -1,6 +1,6 @@
 /**
-  * Test GraphSearchQuery
-  */
+ * Test GraphSearchQuery
+ */
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.graphdb.Label

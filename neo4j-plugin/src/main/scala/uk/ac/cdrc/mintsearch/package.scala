@@ -1,6 +1,6 @@
 /**
-  * Utility Definitions of types
-  */
+ * Utility Definitions of types
+ */
 package uk.ac.cdrc
 
 import scala.math.max

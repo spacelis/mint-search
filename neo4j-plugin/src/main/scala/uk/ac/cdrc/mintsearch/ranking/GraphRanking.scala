@@ -1,6 +1,6 @@
 /**
-  * Interface for ranking graph based on a graph query
-  */
+ * Interface for ranking graph based on a graph query
+ */
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.cypher.export.SubGraph

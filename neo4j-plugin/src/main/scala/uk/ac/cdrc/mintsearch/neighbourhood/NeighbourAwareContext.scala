@@ -1,12 +1,12 @@
 /**
-  * Neighbourhood is the core concept in MintSearch.
-  * A node is indexed by its neighbours but itself.
-  */
+ * Neighbourhood is the core concept in MintSearch.
+ * A node is indexed by its neighbours but itself.
+ */
 
 package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphalgo.impl.util.PathImpl.Builder
-import org.neo4j.graphdb.{Node, Path}
+import org.neo4j.graphdb.{ Node, Path }
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.index.LabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
@@ -28,9 +28,9 @@ trait NeighbourAwareContext {
     def neighbourhood: Iterator[Path] = traversalDescription.traverse(node).iterator().asScala
 
     /**
-      * Find all neighbours of this node but this node
-      * @return an iterator of all neighbours by the paths to them
-      */
+     * Find all neighbours of this node but this node
+     * @return an iterator of all neighbours by the paths to them
+     */
     def neighbours: Iterator[Path] = for {
       p <- neighbourhood
       if p.endNode().getId != node.getId

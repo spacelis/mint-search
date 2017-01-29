@@ -1,8 +1,8 @@
 /**
-  * Neo4J's bundled lucene is used for node indexing and search.
-  * Alternative indexing/search facility can also be used here.
-  * For example, MapDB may be a good choice.
-  */
+ * Neo4J's bundled lucene is used for node indexing and search.
+ * Alternative indexing/search facility can also be used here.
+ * For example, MapDB may be a good choice.
+ */
 
 package uk.ac.cdrc.mintsearch.index
 
@@ -12,7 +12,7 @@ import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{ NeighbourSimilarity, NodeRanking }
 
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.collection.JavaConverters._

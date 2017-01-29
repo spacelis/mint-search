@@ -1,28 +1,21 @@
 /**
-  * Implementation of graph ranking based on neighbours
-  */
+ * Implementation of graph ranking based on neighbours
+ */
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.cypher.export.SubGraph
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.graph.{GraphSnippet, SubGraphEnumeratorContext}
+import uk.ac.cdrc.mintsearch.graph.{ GraphSnippet, SubGraphEnumeratorContext }
 import uk.ac.cdrc.mintsearch.index.NeighbourNodeIndexReader
-import uk.ac.cdrc.mintsearch.neighbourhood.{NeighbourAwareContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
 import uk.ac.cdrc.mintsearch.neo4j._
-import uk.ac.cdrc.mintsearch.search.{GraphSearchQuery, NeighbourAggregatedAnalyzer}
+import uk.ac.cdrc.mintsearch.search.{ GraphSearchQuery, NeighbourAggregatedAnalyzer }
 
 trait NeighbourhoodRanking extends GraphRanking {
-  self: NeighbourNodeIndexReader
-    with GraphDBContext
-    with TraversalStrategy
-    with NeighbourAwareContext
-    with NeighbourNodeIndexReader
-    with NeighbourAggregatedAnalyzer
-    with NodeRanking
-    with SubGraphEnumeratorContext =>
+  self: NeighbourNodeIndexReader with GraphDBContext with TraversalStrategy with NeighbourAwareContext with NeighbourNodeIndexReader with NeighbourAggregatedAnalyzer with NodeRanking with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
-    for {em <- rankEmbeddings(gsq)} yield em.toNeo4JSubGraph
+    for { em <- rankEmbeddings(gsq) } yield em.toNeo4JSubGraph
   }
 
   def rankEmbeddings(gsq: GraphSearchQuery): Iterator[GraphSnippet] = {

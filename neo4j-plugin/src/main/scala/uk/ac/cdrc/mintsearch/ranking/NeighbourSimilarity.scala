@@ -1,6 +1,6 @@
 /**
-  * Defines the similarity measurements between nodes
-  */
+ * Defines the similarity measurements between nodes
+ */
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
