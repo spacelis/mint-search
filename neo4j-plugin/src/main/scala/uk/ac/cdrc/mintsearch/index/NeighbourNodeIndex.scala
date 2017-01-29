@@ -14,6 +14,7 @@ import Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.collection.JavaConverters._
 import scala.pickling._
 import scala.pickling.json._
@@ -23,17 +24,18 @@ import scala.pickling.json._
  * MintSearch. Later can be refactored to include full text indexing which allows
  * text processing such as stemming, stopping words.
  */
-trait IndexManager extends GraphDBContext {
+trait Neo4JIndexManager extends GraphDBContext {
   val indexName: String
 
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
+  def awaitForIndexReady(): Unit = db.schema().awaitIndexesOnline(5, SECONDS)
 }
 
 /**
  * Reading the Lucene index for getting a list of potential matched nodes.
  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
  */
-trait NeighbourNodeIndexReader extends IndexManager {
+trait NeighbourNodeIndexReader extends Neo4JIndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
 
   def encodeQuery(labelSet: Set[L]): String = {
@@ -51,7 +53,7 @@ trait NeighbourNodeIndexReader extends IndexManager {
 /**
  * Building a node index based on nodes' neighbourhoods using the Lucene.
  */
-trait NeighbourNodeIndexWriter extends IndexManager {
+trait NeighbourNodeIndexWriter extends Neo4JIndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   def index(n: Node): Unit = {

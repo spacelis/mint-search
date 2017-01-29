@@ -70,7 +70,7 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
           indexWriter.index(indexWriter.db.getNodeById(nodeA))
           indexWriter.index(indexWriter.db.getNodeById(nodeB))
           indexWriter.index(indexWriter.db.getNodeById(nodeC))
-          indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
+          indexReader.awaitForIndexReady()
           tx.success()
         }
       }
@@ -104,7 +104,7 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
           indexWriter.index(indexWriter.db.getNodeById(nodeB))
           indexWriter.index(indexWriter.db.getNodeById(nodeC))
           indexWriter.index(indexWriter.db.getNodeById(nodeD))
-          indexReader.db.schema().awaitIndexesOnline(5, SECONDS)
+          indexReader.awaitForIndexReady()
           tx.success()
         }
       }

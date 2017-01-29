@@ -33,12 +33,7 @@ case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
 }
 
 object GraphSnippet {
-  implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = {
-    val cypherResultSubGraph = new CypherResultSubGraph()
-    subGraphStore.nodes.foreach(cypherResultSubGraph.add)
-    subGraphStore.relationships.foreach(cypherResultSubGraph.add)
-    cypherResultSubGraph
-  }
+  implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
 }
 
 /**

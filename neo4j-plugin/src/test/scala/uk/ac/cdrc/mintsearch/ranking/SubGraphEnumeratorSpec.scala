@@ -8,10 +8,12 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.graph.{GraphSnippet, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
+
+import scala.collection.JavaConverters._
 
 class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
@@ -151,7 +153,45 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
         }
       }
     }
+  }
 
+  "GraphSnippet" should {
+    "return a CypherResultSubGraph representing the sub graph store" in { f =>
+      import f._
+      WithResource(driver.session()) { session =>
+
+        // create a simple graph with two order of relationship friend
+        val nodeId: Long = session.run(
+          """CREATE
+            | (a: Person {name:'Alice'}),
+            | (b: Person {name: 'Bob'}),
+            | (c: Person {name: 'Carl'}),
+            | (a)-[:Friend]->(b)-[:Friend]->(c)
+            | RETURN id(a)""".stripMargin
+        )
+          .single()
+          .get(0).asLong()
+
+        // create a wrapper function
+        WithResource(context.db.beginTx()) { _ =>
+          import context.nodeWrapper
+          // query the neighbours
+          val nodes = (for {
+            p <- context.db.getNodeById(nodeId).neighbours
+            n <- p.nodes().asScala
+          } yield n).toList
+
+          val relationships = (for {
+            p <- context.db.getNodeById(nodeId).neighbours
+            r <- p.relationships().asScala
+          } yield r).toList
+
+          val sgs = GraphSnippet(nodes, relationships)
+          val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
+          sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
+        }
+      }
+    }
   }
 }
 
