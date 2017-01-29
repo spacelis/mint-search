@@ -2,7 +2,7 @@ package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.cypher.export.SubGraph
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.index.NeighbourAggregatedIndexReader
+import uk.ac.cdrc.mintsearch.index.NeighbourNodeIndexReader
 import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
 import uk.ac.cdrc.mintsearch.neo4j._
 import uk.ac.cdrc.mintsearch.search.{ GraphSearchQuery, NeighbourAggregatedAnalyzer }
@@ -13,11 +13,11 @@ import uk.ac.cdrc.mintsearch.search.{ GraphSearchQuery, NeighbourAggregatedAnaly
  */
 
 trait NeighbourhoodRanking extends GraphRanking {
-  self: NeighbourAggregatedIndexReader
+  self: NeighbourNodeIndexReader
     with GraphContext
     with TraversalStrategy
     with NeighbourAwareContext
-    with NeighbourAggregatedIndexReader
+    with NeighbourNodeIndexReader
     with NeighbourAggregatedAnalyzer
     with NodeRanking
     with SubGraphEnumeratorContext =>

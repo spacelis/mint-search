@@ -33,7 +33,7 @@ trait IndexManager extends GraphContext {
  * Reading the Lucene index for getting a list of potential matched nodes.
  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
  */
-trait NeighbourAggregatedIndexReader extends IndexManager {
+trait NeighbourNodeIndexReader extends IndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
 
   def encodeQuery(labelSet: Set[L]): String = {
@@ -51,7 +51,7 @@ trait NeighbourAggregatedIndexReader extends IndexManager {
 /**
  * Building a node index based on nodes' neighbourhoods using the Lucene.
  */
-trait NeighbourAggregatedIndexWriter extends IndexManager {
+trait NeighbourNodeIndexWriter extends IndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   def index(n: Node): Unit = {

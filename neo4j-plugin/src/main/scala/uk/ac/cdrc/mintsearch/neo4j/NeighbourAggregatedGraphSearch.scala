@@ -5,7 +5,7 @@ import java.util.stream.{ Stream => JStream }
 import org.neo4j.cypher.export.SubGraph
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{ Name, PerformsWrites, Procedure }
-import uk.ac.cdrc.mintsearch.index.{ NeighbourAggregatedIndexReader, NeighbourAggregatedIndexWriter }
+import uk.ac.cdrc.mintsearch.index.{ NeighbourNodeIndexReader, NeighbourNodeIndexWriter }
 import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
 import uk.ac.cdrc.mintsearch.ranking.{ NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking }
 import uk.ac.cdrc.mintsearch.search.{ NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder }
@@ -15,26 +15,26 @@ import scala.compat.java8.StreamConverters._
 /**
  * This class implements the NEighborhood based Similarity Search
  */
-class NeighbourAggregatedSearch extends Neo4JProcedure {
+class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourhoodRanking with NeighbourAggregatedIndexReader with GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
+  val graphSearcher = new NeighbourhoodRanking with NeighbourNodeIndexReader with GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
 
     override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
     override val labelStorePropKey: String = s"__nagg_$radius"
-    override val db: GraphDatabaseService = NeighbourAggregatedSearch.this.db
+    override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
 
-  val indexWriter = new NeighbourAggregatedIndexWriter with GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+  val indexWriter = new NeighbourNodeIndexWriter with GraphContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
 
     override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
     override val labelStorePropKey: String = s"__nagg_$radius"
-    override val db: GraphDatabaseService = NeighbourAggregatedSearch.this.db
+    override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
   /**
    *
