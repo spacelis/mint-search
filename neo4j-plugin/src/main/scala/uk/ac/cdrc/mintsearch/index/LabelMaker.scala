@@ -1,7 +1,7 @@
 /**
   * Label handling
   */
-package uk.ac.cdrc.mintsearch.neo4j
+package uk.ac.cdrc.mintsearch.index
 
 import org.neo4j.graphdb.Node
 

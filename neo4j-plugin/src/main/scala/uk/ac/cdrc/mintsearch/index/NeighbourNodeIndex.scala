@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
-import uk.ac.cdrc.mintsearch.neo4j.Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
+import Neo4JIndexTypes._
+import uk.ac.cdrc.mintsearch.neo4j.GraphContext
 import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
 import scala.collection.JavaConverters._

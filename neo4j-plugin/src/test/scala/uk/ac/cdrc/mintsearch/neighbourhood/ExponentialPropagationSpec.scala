@@ -9,7 +9,8 @@ import org.neo4j.graphalgo.impl.util.PathImpl
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, PropertyLabelMaker, WithResource}
+import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
+import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, WithResource}
 
 import scala.collection.JavaConverters._
 

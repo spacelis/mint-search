@@ -2,7 +2,8 @@ package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neo4j.{GraphContext, LabelMaker}
+import uk.ac.cdrc.mintsearch.index.LabelMaker
+import uk.ac.cdrc.mintsearch.neo4j.GraphContext
 
 import scala.collection.JavaConverters._
 

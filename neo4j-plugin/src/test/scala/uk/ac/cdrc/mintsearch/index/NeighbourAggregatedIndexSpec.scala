@@ -11,7 +11,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.neo4j.{PropertyLabelMaker, WithResource}
+import uk.ac.cdrc.mintsearch.neo4j.WithResource
 import uk.ac.cdrc.mintsearch.ranking.{SimpleNeighbourSimilarity, SimpleNodeRanking}
 
 import scala.collection.JavaConverters._

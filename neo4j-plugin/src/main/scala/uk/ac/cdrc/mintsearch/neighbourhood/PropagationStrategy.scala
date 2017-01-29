@@ -2,7 +2,7 @@ package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.Path
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
-import uk.ac.cdrc.mintsearch.neo4j.LabelMaker
+import uk.ac.cdrc.mintsearch.index.LabelMaker
 
 /**
  * Created by ucfawli on 08-Jan-17.

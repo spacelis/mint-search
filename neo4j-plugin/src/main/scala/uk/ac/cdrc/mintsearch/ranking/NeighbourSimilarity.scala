@@ -1,7 +1,7 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
-import uk.ac.cdrc.mintsearch.neo4j.LabelMaker
+import uk.ac.cdrc.mintsearch.index.LabelMaker
 
 /**
  * Created by ucfawli on 15-Jan-17.
