@@ -23,7 +23,7 @@ trait NeighbourhoodRanking extends GraphRanking {
     with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
-    val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (getSimilarNodes(wls).toList map { _.getId })
+    val nodeMatching: NodeMatching = for { (n, wls) <- analyze(gsq) } yield n -> (rankNode(wls).toList map { _.getId })
     matchedEmbeddings(nodeMatching) map { _.toNeo4JSubGraph }
   }
 

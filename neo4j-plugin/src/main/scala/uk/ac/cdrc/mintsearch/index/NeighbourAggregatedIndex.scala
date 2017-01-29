@@ -1,3 +1,9 @@
+/**
+  * Neo4J's bundled lucene is used for node indexing and search.
+  * Alternative indexing/search facility can also be used here.
+  * For example, MapDB may be a good choice.
+  */
+
 package uk.ac.cdrc.mintsearch.index
 
 import org.neo4j.graphdb.Node
@@ -11,12 +17,6 @@ import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 import scala.collection.JavaConverters._
 import scala.pickling._
 import scala.pickling.json._
-
-/**
- * Neo4J's bundled lucene is used for node indexing and search.
- * Alternative indexing/search facility can also be used here.
- * For example, MapDB may be a good choice.
- */
 
 /**
  * No text processing is configured as full text search is not the target of
@@ -36,11 +36,16 @@ trait IndexManager extends GraphContext {
 trait NeighbourAggregatedIndexReader extends IndexManager {
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
 
-  def encodeQuery(wls: WeightedLabelSet[L]): String = (for {
-    l <- wls.keySet
-  } yield labelEncodeQuery(l)) mkString " "
+  def encodeQuery(labelSet: Set[L]): String = {
+    val query = (for {
+      l <- labelSet
+    } yield labelEncodeQuery(l)) mkString " "
+    s"$labelStorePropKey:$query"
+  }
 
-  def getSimilarNodes(wls: WeightedLabelSet[L]): Iterator[Node] = indexDB.query(encodeQuery(wls)).iterator().asScala
+  def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
+
+  def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node] = getNodes(weightedLabelSet.keySet)
 }
 
 /**
@@ -54,7 +59,7 @@ trait NeighbourAggregatedIndexWriter extends IndexManager {
 
     // Indexing the node and store the neighbors' labels in the node's property
     indexDB.remove(n) // Make sure the node will be replaced in the index
-    indexDB.add(n, labelStorePropKey, labelWeights.keys map {labelEncode(_)} mkString " ")
+    indexDB.add(n, labelStorePropKey, labelWeights.keys map labelEncode mkString " ")
     n.setProperty(labelStorePropKey, labelWeights.map((e) => (labelEncode(e._1), e._2)).pickle.value)
   }
 }

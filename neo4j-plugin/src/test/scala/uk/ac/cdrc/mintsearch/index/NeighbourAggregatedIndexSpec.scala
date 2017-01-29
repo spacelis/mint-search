@@ -111,10 +111,10 @@ class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
       WithResource(driver.session()) { _ =>
         WithResource(indexReader.db.beginTx()) { tx =>
           // query the neighbours
-          indexReader.indexDB.query("__nagg_2:name\\:alice").stream().iterator().asScala.toList should have length 2
-          indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 3
-          indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 3
-          indexReader.indexDB.query("__nagg_2:name\\:david").stream().iterator().asScala.toList should have length 2
+          indexReader.getNodes(Set(("name", "alice"))).toList should have length 2
+          indexReader.getNodes(Set(("name", "Bob"))).toList should have length 3
+          indexReader.getNodes(Set(("name", "carl"))).toList should have length 3
+          indexReader.getNodes(Set(("name", "david"))).toList should have length 2
           tx.success()
         }
       }
