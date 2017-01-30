@@ -1,15 +1,15 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import java.util.stream.{ Stream => JStream }
+import java.util.stream.{Stream => JStream}
 
 import org.neo4j.cypher.export.SubGraph
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.procedure.{ Name, PerformsWrites, Procedure }
+import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
 import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
-import uk.ac.cdrc.mintsearch.index.{ NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker }
-import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
-import uk.ac.cdrc.mintsearch.ranking.{ NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking }
-import uk.ac.cdrc.mintsearch.search.{ NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder }
+import uk.ac.cdrc.mintsearch.index.{NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
 
 import scala.compat.java8.StreamConverters._
 

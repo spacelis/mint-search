@@ -4,15 +4,15 @@
 
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.driver.v1.{ Config, Driver, GraphDatabase }
+import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
-import uk.ac.cdrc.mintsearch.index.{ NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker }
-import uk.ac.cdrc.mintsearch.neighbourhood.{ ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius }
-import uk.ac.cdrc.mintsearch.neo4j.{ GraphDBContext, WithResource }
-import uk.ac.cdrc.mintsearch.search.{ NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder }
+import uk.ac.cdrc.mintsearch.index.{NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
+import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
 
 class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
 

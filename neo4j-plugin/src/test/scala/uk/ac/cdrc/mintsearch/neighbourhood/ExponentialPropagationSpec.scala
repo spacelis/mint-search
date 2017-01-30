@@ -4,13 +4,13 @@
 
 package uk.ac.cdrc.mintsearch.neighbourhood
 
-import org.neo4j.driver.v1.{ Config, Driver, GraphDatabase }
+import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphalgo.impl.util.PathImpl
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
-import uk.ac.cdrc.mintsearch.neo4j.{ GraphDBContext, WithResource }
+import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 import scala.collection.JavaConverters._
 

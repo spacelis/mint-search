@@ -4,7 +4,7 @@
 package uk.ac.cdrc.mintsearch.neighbourhood
 
 import org.neo4j.graphdb.RelationshipType
-import org.neo4j.graphdb.traversal.{ Evaluators, TraversalDescription, Uniqueness }
+import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
 import org.neo4j.kernel.impl.traversal.MonoDirectionalTraversalDescription
 
 trait TraversalStrategy {

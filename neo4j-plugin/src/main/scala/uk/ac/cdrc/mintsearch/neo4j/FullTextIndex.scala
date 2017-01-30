@@ -1,16 +1,14 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
-import collection.JavaConverters._
-import scala.compat.java8.StreamConverters._
-
 import java.util.List
 import java.util.stream.Stream
 
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.IndexManager
-import org.neo4j.procedure.Name
-import org.neo4j.procedure.PerformsWrites
-import org.neo4j.procedure.Procedure
+import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
+
+import scala.collection.JavaConverters._
+import scala.compat.java8.StreamConverters._
 
 /**
  * This is an example showing how you could expose Neo4j's full text indexes as

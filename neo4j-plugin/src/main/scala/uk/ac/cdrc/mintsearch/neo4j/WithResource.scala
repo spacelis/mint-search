@@ -6,7 +6,7 @@
 package uk.ac.cdrc.mintsearch.neo4j
 
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object WithResource {
   def apply[C <: AutoCloseable, R](resource: => C)(f: C => R): R =

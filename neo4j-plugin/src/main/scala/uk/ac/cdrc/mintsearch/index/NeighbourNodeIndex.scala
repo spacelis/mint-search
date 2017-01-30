@@ -6,15 +6,16 @@
 
 package uk.ac.cdrc.mintsearch.index
 
+import java.util.concurrent.TimeUnit.SECONDS
+
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
+import uk.ac.cdrc.mintsearch.index.Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
-import Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
-import uk.ac.cdrc.mintsearch.ranking.{ NeighbourSimilarity, NodeRanking }
+import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
-import java.util.concurrent.TimeUnit.SECONDS
 import scala.collection.JavaConverters._
 import scala.pickling._
 import scala.pickling.json._
