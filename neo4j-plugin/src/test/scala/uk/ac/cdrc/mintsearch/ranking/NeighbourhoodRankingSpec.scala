@@ -9,7 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
-import uk.ac.cdrc.mintsearch.index.{NeighbourNodeIndexReader, NeighbourNodeIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourNodeIndexReader, LegacyNeighbourNodeIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
@@ -18,7 +18,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
     val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-    val indexWriter = new NeighbourNodeIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+    val indexWriter = new LegacyNeighbourNodeIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -28,7 +28,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
       override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
     }
 
-    val graphSearcher = new NeighbourhoodRanking with NeighbourNodeIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
+    val graphSearcher = new NeighbourhoodRanking with LegacyNeighbourNodeIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

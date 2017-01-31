@@ -25,9 +25,29 @@ import scala.pickling.json._
  * MintSearch. Later can be refactored to include full text indexing which allows
  * text processing such as stemming, stopping words.
  */
-trait Neo4JIndexManager extends GraphDBContext {
-  val indexName: String
 
+trait NodeIndexManager extends GraphDBContext {
+  val indexName: String
+}
+
+trait NodeIndexReader extends NodeIndexManager {
+  self: LabelMaker =>
+  def getNodes(labelSet: Set[L]): Iterator[Node]
+  def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node]
+}
+
+trait NodeIndexWriter extends NodeIndexManager {
+  def index(): Unit
+  def index(n: Node): Unit
+}
+
+
+/**
+  * The following traits are implementation of NodeIndex via Neo4J's index interface
+  * though it provides limited access to the underlying lucene indices.
+  */
+trait Neo4JNodeIndexManager extends NodeIndexManager {
+  self: LabelMaker =>
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
   def awaitForIndexReady(): Unit = db.schema().awaitIndexesOnline(5, SECONDS)
 }
@@ -36,7 +56,7 @@ trait Neo4JIndexManager extends GraphDBContext {
  * Reading the Lucene index for getting a list of potential matched nodes.
  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
  */
-trait NeighbourNodeIndexReader extends Neo4JIndexManager {
+trait LegacyNeighbourNodeIndexReader extends Neo4JNodeIndexManager with NodeIndexReader{
   self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
 
   def encodeQuery(labelSet: Set[L]): String = {
@@ -45,18 +65,18 @@ trait NeighbourNodeIndexReader extends Neo4JIndexManager {
     } yield s"$labelStorePropKey:${labelEncodeQuery(l)}") mkString " "
   }
 
-  def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
+  override def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
 
-  def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node] = getNodes(weightedLabelSet.keySet)
+  override def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node] = getNodes(weightedLabelSet.keySet)
 }
 
 /**
  * Building a node index based on nodes' neighbourhoods using the Lucene.
  */
-trait NeighbourNodeIndexWriter extends Neo4JIndexManager {
+trait LegacyNeighbourNodeIndexWriter extends Neo4JNodeIndexManager with NodeIndexWriter {
   self: NeighbourAwareContext with LabelMaker =>
-  def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
-  def index(n: Node): Unit = {
+  override def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
+  override def index(n: Node): Unit = {
     val labelWeights = n.collectNeighbourhoodLabels
 
     // Indexing the node and store the neighbors' labels in the node's property
@@ -65,3 +85,4 @@ trait NeighbourNodeIndexWriter extends Neo4JIndexManager {
     n.setProperty(labelStorePropKey, labelWeights.map((e) => (labelEncode(e._1), e._2)).pickle.value)
   }
 }
+
