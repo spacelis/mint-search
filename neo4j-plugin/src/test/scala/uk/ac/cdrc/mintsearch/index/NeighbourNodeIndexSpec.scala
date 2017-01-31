@@ -14,7 +14,7 @@ import uk.ac.cdrc.mintsearch.ranking.{SimpleNeighbourSimilarity, SimpleNodeRanki
 
 import scala.collection.JavaConverters._
 
-class NeighbourAggregatedIndexSpec extends fixture.WordSpec with Matchers {
+class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
     val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
