@@ -214,13 +214,13 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
         WithResource(driver.session()) { session =>
           val res = session.run(
             """CREATE
+              | (x: Person {name:'David'}),
+              | (y: Person {name: 'Alice'}),
               | (a: Person {name:'Alice'}),
               | (b: Person {name: 'Bob'}),
               | (c: Person {name: 'Carl'}),
-              | (x: Person {name:'David'}),
-              | (y: Person {name: 'Alice'}),
-              | (a)-[:Friend]->(b)-[:Friend]->(c),
-              | (x)-[:Friend]->(y)
+              | (x)-[:Friend]->(y),
+              | (a)-[:Friend]->(b)-[:Friend]->(c)
               | RETURN id(a), id(b), id(c), id(x), id(y)""".stripMargin
           ).single()
           val Seq(nodeA, nodeB, nodeC, nodeX, nodeY) = for (i <- 0 until 5) yield res.get(i).asLong
@@ -238,7 +238,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
               val res = graphSearcher.rankEmbeddings(q).toList
               res should have length 2
               val resNodeSets = res.map(_.nodeIds.toSet)
-              resNodeSets should contain(Set(nodeA, nodeB, nodeC))
+              resNodeSets.head should be(Set(nodeA, nodeB, nodeC))
               resNodeSets should contain(Set(nodeX, nodeY))
             }
             tx.success()
