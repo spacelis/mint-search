@@ -12,7 +12,13 @@ import uk.ac.cdrc.mintsearch.neo4j._
 import uk.ac.cdrc.mintsearch.search.{GraphSearchQuery, NeighbourAggregatedAnalyzer}
 
 trait NeighbourhoodRanking extends GraphRanking {
-  self: NodeIndexReader with GraphDBContext with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with SubGraphEnumeratorContext =>
+  self: NodeIndexReader
+    with GraphDBContext
+    with TraversalStrategy
+    with NeighbourAwareContext
+    with NeighbourAggregatedAnalyzer
+    with NodeRanking
+    with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphSearchQuery): Iterator[SubGraph] = {
     for { em <- rankEmbeddings(gsq) } yield em.toNeo4JSubGraph

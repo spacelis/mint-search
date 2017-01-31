@@ -18,7 +18,18 @@ import scala.compat.java8.StreamConverters._
  */
 class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourhoodRanking with LegacyNeighbourNodeIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
+  val graphSearcher = new NeighbourhoodRanking
+    with LegacyNeighbourNodeIndexReader
+    with GraphDBContext
+    with ExponentialPropagation
+    with PropertyLabelMaker
+    with NeighbourhoodByRadius
+    with NeighbourAwareContext
+    with NeighbourAggregatedAnalyzer
+    with SimpleNeighbourSimilarity
+    with SimpleNodeRanking
+    with SubGraphEnumeratorContext
+    with SimpleGraphQueryBuilder {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
@@ -28,7 +39,12 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
 
-  val indexWriter = new LegacyNeighbourNodeIndexWriter with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+  val indexWriter = new LegacyNeighbourNodeIndexWriter
+    with GraphDBContext
+    with ExponentialPropagation
+    with PropertyLabelMaker
+    with NeighbourhoodByRadius
+    with NeighbourAwareContext {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
