@@ -1,14 +1,18 @@
-/**
- * Interface for ranking graph based on a graph query
- */
 package uk.ac.cdrc.mintsearch.ranking
 
-import org.neo4j.cypher.export.SubGraph
-import uk.ac.cdrc.mintsearch.search.GraphSearchQuery
+import uk.ac.cdrc.mintsearch.NodeMatchingSet
+import uk.ac.cdrc.mintsearch.graph.GraphSnippet
 
+/**
+  * Created by ucfawli on 2/2/17.
+  */
 trait GraphRanking {
-  def search(gsq: GraphSearchQuery): Iterator[SubGraph]
+  def rankGraphs(nodeMatchingSet: NodeMatchingSet, graphSnippetList: IndexedSeq[GraphSnippet]): IndexedSeq[(GraphSnippet, Double)]
 }
 
-object GraphRanking {
+trait SimpleGraphRanking extends GraphRanking {
+  override def rankGraphs(nodeMatchingSet: NodeMatchingSet, graphSnippetList: IndexedSeq[GraphSnippet]) = (for {
+    g <- graphSnippetList
+  } yield g -> 0d).sortBy(_._2)
 }
+

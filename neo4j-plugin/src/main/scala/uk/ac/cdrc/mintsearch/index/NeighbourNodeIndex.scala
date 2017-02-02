@@ -26,19 +26,21 @@ import scala.pickling.json._
  * text processing such as stemming, stopping words.
  */
 
-trait NodeIndexManager extends GraphDBContext {
+trait BaseIndexManager extends GraphDBContext {
   val indexName: String
 }
 
-trait NodeIndexReader extends NodeIndexManager {
+trait BaseIndexReader extends BaseIndexManager {
   self: LabelMaker =>
   def getNodes(labelSet: Set[L]): Iterator[Node]
-  def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node]
+  def retrieveWeightedLabels(n: Node): WeightedLabelSet[L]
 }
 
-trait NodeIndexWriter extends NodeIndexManager {
+trait BaseIndexWriter extends BaseIndexManager {
+  self: LabelMaker =>
   def index(): Unit
   def index(n: Node): Unit
+  def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit
 }
 
 
@@ -46,7 +48,7 @@ trait NodeIndexWriter extends NodeIndexManager {
   * The following traits are implementation of NodeIndex via Neo4J's index interface
   * though it provides limited access to the underlying lucene indices.
   */
-trait Neo4JNodeIndexManager extends NodeIndexManager {
+trait Neo4JBaseIndexManager extends BaseIndexManager {
   self: LabelMaker =>
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
   def awaitForIndexReady(): Unit = db.schema().awaitIndexesOnline(5, SECONDS)
@@ -56,8 +58,8 @@ trait Neo4JNodeIndexManager extends NodeIndexManager {
  * Reading the Lucene index for getting a list of potential matched nodes.
  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
  */
-trait LegacyNeighbourNodeIndexReader extends Neo4JNodeIndexManager with NodeIndexReader{
-  self: NeighbourAwareContext with LabelMaker with NeighbourSimilarity with NodeRanking =>
+trait LegacyNeighbourBaseIndexReader extends Neo4JBaseIndexManager with BaseIndexReader{
+  self: NeighbourAwareContext with LabelMaker with NodeRanking with NeighbourSimilarity =>
 
   def encodeQuery(labelSet: Set[L]): String = {
     (for {
@@ -67,13 +69,15 @@ trait LegacyNeighbourNodeIndexReader extends Neo4JNodeIndexManager with NodeInde
 
   override def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
 
-  override def rankNode(weightedLabelSet: WeightedLabelSet[L]): Iterator[Node] = getNodes(weightedLabelSet.keySet)
+  override def retrieveWeightedLabels(n: Node) = {
+    n.getProperty(labelStorePropKey)
+  }
 }
 
 /**
  * Building a node index based on nodes' neighbourhoods using the Lucene.
  */
-trait LegacyNeighbourNodeIndexWriter extends Neo4JNodeIndexManager with NodeIndexWriter {
+trait LegacyNeighbourBaseIndexWriter extends Neo4JBaseIndexManager with BaseIndexWriter {
   self: NeighbourAwareContext with LabelMaker =>
   override def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   override def index(n: Node): Unit = {
@@ -82,7 +86,10 @@ trait LegacyNeighbourNodeIndexWriter extends Neo4JNodeIndexManager with NodeInde
     // Indexing the node and store the neighbors' labels in the node's property
     indexDB.remove(n) // Make sure the node will be replaced in the index
     indexDB.add(n, labelStorePropKey, labelWeights.keys map labelEncode mkString " ")
-    n.setProperty(labelStorePropKey, labelWeights.map((e) => (labelEncode(e._1), e._2)).pickle.value)
+  }
+
+  override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]) = {
+    n.setProperty(labelStorePropKey, wls.map((e) => (labelEncode(e._1), e._2)).pickle.value)
   }
 }
 

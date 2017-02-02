@@ -6,9 +6,9 @@ import org.neo4j.cypher.export.SubGraph
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
 import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
-import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourNodeIndexReader, LegacyNeighbourNodeIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodSearcher, SimpleGraphRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
 
 import scala.compat.java8.StreamConverters._
@@ -18,8 +18,8 @@ import scala.compat.java8.StreamConverters._
  */
 class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourhoodRanking
-    with LegacyNeighbourNodeIndexReader
+  val graphSearcher = new NeighbourhoodSearcher
+    with LegacyNeighbourBaseIndexReader
     with GraphDBContext
     with ExponentialPropagation
     with PropertyLabelMaker
@@ -28,6 +28,7 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     with NeighbourAggregatedAnalyzer
     with SimpleNeighbourSimilarity
     with SimpleNodeRanking
+    with SimpleGraphRanking
     with SubGraphEnumeratorContext
     with SimpleGraphQueryBuilder {
 
@@ -39,7 +40,7 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
 
-  val indexWriter = new LegacyNeighbourNodeIndexWriter
+  val indexWriter = new LegacyNeighbourBaseIndexWriter
     with GraphDBContext
     with ExponentialPropagation
     with PropertyLabelMaker

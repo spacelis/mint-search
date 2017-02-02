@@ -18,7 +18,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
     val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-    val indexWriter = new LegacyNeighbourNodeIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+    val indexWriter = new LegacyNeighbourBaseIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -27,7 +27,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
       override val db: GraphDatabaseService = neo4jServer.graph()
       override val indexName: String = "ness_index"
     }
-    val indexReader = new LegacyNeighbourNodeIndexReader with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SimpleNeighbourSimilarity with SimpleNodeRanking {
+    val indexReader = new LegacyNeighbourBaseIndexReader with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SimpleNeighbourSimilarity with SimpleNodeRanking {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

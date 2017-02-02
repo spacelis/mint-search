@@ -54,12 +54,12 @@ trait SubGraphEnumeratorContext {
    * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
    * @return an iterator though the embeddings assembled from the pooled nodes
    */
-  def iterateEmbedding(nodeMatching: NodeMatching): Iterator[GraphSnippet] = {
-    val nodeSet = (for {
-      nl <- nodeMatching.values
-      n <- nl
-    } yield n).toSet
-    assembleSubGraph(nodeSet).toIterator
+  def iterateEmbedding(nodeMatching: NodeMatchingSet): Iterator[GraphSnippet] = {
+    val nodes = (for {
+      nodeList <- nodeMatching.values
+      node <- nodeList
+    } yield node).toSet
+    assembleSubGraph(nodes).toIterator
   }
 
   /**

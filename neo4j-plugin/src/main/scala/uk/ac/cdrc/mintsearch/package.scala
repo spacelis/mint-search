@@ -17,7 +17,12 @@ package object mintsearch {
   /**
    * A mapping from a node (by its ID) to a list of nodes (IDs)
    */
-  type NodeMatching = Map[NodeId, Seq[NodeId]]
+  type NodeMatchingSet = Map[NodeId, Seq[NodeId]]
+
+  /**
+    * A mapping of a candidate node to the query node
+    */
+  type NodeMatch = (NodeId, NodeId)
 
   /**
    * A mapping from node to its weighted label set
@@ -38,6 +43,16 @@ package object mintsearch {
     }
 
   }
+
+  /**
+    * Reverse the matching set to node mappings from candidate to query
+    * @param matchingSet a mapping of query node to a list of candidate nodes
+    * @return a map of candidate nodes to the original node
+    */
+  def reverseMapping(matchingSet: NodeMatchingSet): Map[NodeId, NodeId] = (for {
+    (n, matchings) <- matchingSet.toSeq
+    i <- matchings
+  } yield i -> n).toMap
 
   /**
    * Sum up a list of weight distributions
