@@ -8,11 +8,10 @@ import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
-import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
+import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
 
@@ -28,7 +27,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
       override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
     }
 
-    val graphSearcher = new NeighbourhoodSearcher with LegacyNeighbourBaseIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SimpleGraphRanking with SubGraphEnumeratorContext with SimpleGraphQueryBuilder {
+    val graphSearcher = new NeighbourBasedSearcher with LegacyNeighbourBaseIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with SimpleNeighbourSimilarity with SimpleNodeRanking with SimpleGraphRanking with SubGraphEnumeratorContext with SimpleQueryBuilder {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -76,7 +75,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
                 | (a)-[:Friend]->(b)
               """.stripMargin
             )) { q =>
-              val top = graphSearcher.rankEmbeddings(q).toList.head
+              val top = graphSearcher.search(q).graphSnippets.head
               top.nodeIds.toSet should be(Set(nodeA, nodeB, nodeC))
               tx.success()
             }
@@ -115,7 +114,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
                 | (a)-[:Friend]->(b)
               """.stripMargin
             )) { q =>
-              val res = graphSearcher.rankEmbeddings(q).toList
+              val res = graphSearcher.search(q).graphSnippets
               res should have length 1
               res.head.nodeIds.toSet should be(Set(nodeA, nodeB, nodeC))
             }
@@ -157,7 +156,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
                 | (a)-[:Friend]->(b)
               """.stripMargin
             )) { q =>
-              val res = graphSearcher.rankEmbeddings(q).toList
+              val res = graphSearcher.search(q).graphSnippets
               res should have length 2
               val resNodeSets = res.map(_.nodeIds.toSet)
               resNodeSets should contain(Set(nodeA, nodeB, nodeC))
@@ -197,7 +196,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
               | (a)-[:Friend]->(b)
             """.stripMargin
             )) { q =>
-              val res = graphSearcher.rankEmbeddings(q).toList
+              val res = graphSearcher.search(q).graphSnippets
               res should have length 2
               val resNodeSets = res.map(_.nodeIds.toSet)
               resNodeSets should contain(Set(nodeA, nodeB, nodeC))
@@ -235,7 +234,7 @@ class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
                 | (a)-[:Friend]->(b)
               """.stripMargin
             )) { q =>
-              val res = graphSearcher.rankEmbeddings(q).toList
+              val res = graphSearcher.search(q).graphSnippets
               res should have length 2
               val resNodeSets = res.map(_.nodeIds.toSet)
               resNodeSets.head should be(Set(nodeA, nodeB, nodeC))

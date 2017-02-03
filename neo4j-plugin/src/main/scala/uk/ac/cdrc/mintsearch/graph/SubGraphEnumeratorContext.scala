@@ -4,37 +4,12 @@
 package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.cypher.export.CypherResultSubGraph
-import org.neo4j.graphdb.{ Node, Path, Relationship }
+import org.neo4j.graphdb.{Node, Path, Relationship}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.neighbourhood.{ NeighbourAwareContext, TraversalStrategy }
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-
-/**
- * This class is an intermediate result collecting bin as a counter part in scala for
- * Neo4J's class implementing SubGraph
- * @param nodes the nodes in a sub graph
- * @param relationships the relationships in a sub graph
- */
-case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
-  def addNode(n: Node) = GraphSnippet(n :: nodes, relationships)
-  def addNodes(ns: Iterable[Node]) = GraphSnippet(ns.toList ++ nodes, relationships)
-  def addRelationship(r: Relationship) = GraphSnippet(nodes, r :: relationships)
-  def addRelationships(rs: Iterable[Relationship]) = GraphSnippet(nodes, rs.toList ++ relationships)
-  lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
-
-  def toNeo4JSubGraph: CypherResultSubGraph = {
-    val sg = new CypherResultSubGraph()
-    for { n <- nodes } sg add n
-    for { r <- relationships } sg add r
-    sg
-  }
-}
-
-object GraphSnippet {
-  implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
-}
 
 /**
  * This class defines a procedure to assemble embeddings from the ranking lists of nodes.
@@ -48,33 +23,19 @@ trait SubGraphEnumeratorContext {
   self: GraphDBContext with TraversalStrategy with NeighbourAwareContext =>
 
   /**
-   * This method is the main interface for iterating though the sub graphs from the ranking lists
-   * of nodes.
-   *
-   * @param nodeMatching is a mapping between the queried graph nodes to similar nodes in the graph store
-   * @return an iterator though the embeddings assembled from the pooled nodes
-   */
-  def iterateEmbedding(nodeMatching: NodeMatchingSet): Iterator[GraphSnippet] = {
-    val nodes = (for {
-      nodeList <- nodeMatching.values
-      node <- nodeList
-    } yield node).toSet
-    assembleSubGraph(nodes).toIterator
-  }
-
-  /**
    * Assemble graphs from dangled nodes
    * @param dangled is a set of nodeIds
    * @return a stream of sub graph stores from the dangled nodes
    */
-  def assembleSubGraph(dangled: Set[NodeId]): Stream[GraphSnippet] = {
+  @tailrec
+  final def composeGraphs(dangled: Set[NodeId], acc: Seq[GraphSnippet]=Seq.empty): Seq[GraphSnippet] = {
     dangled.toList match {
       case x :: xs =>
         val seed = dangled.take(1)
         val subGraph = expandingSubGraph(seed, dangled)
-        subGraph #:: assembleSubGraph(dangled -- subGraph.nodeIds)
+        composeGraphs(dangled -- subGraph.nodeIds, acc :+ subGraph)
       case Nil =>
-        Stream.empty
+        acc
     }
   }
 
@@ -110,4 +71,30 @@ trait SubGraphEnumeratorContext {
     else
       (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ pathToNeighbours.keySet, seedPaths ++ pathToNeighbours, range -- seedNodes)
   }
+
+  /**
+    * This class is an intermediate result collecting bin as a counter part in scala for
+    * Neo4J's class implementing SubGraph
+    * @param nodes the nodes in a sub graph
+    * @param relationships the relationships in a sub graph
+    */
+  case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
+    def addNode(n: Node) = GraphSnippet(n :: nodes, relationships)
+    def addNodes(ns: Iterable[Node]) = GraphSnippet(ns.toList ++ nodes, relationships)
+    def addRelationship(r: Relationship) = GraphSnippet(nodes, r :: relationships)
+    def addRelationships(rs: Iterable[Relationship]) = GraphSnippet(nodes, rs.toList ++ relationships)
+    lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
+
+    def toNeo4JSubGraph: CypherResultSubGraph = {
+      val sg = new CypherResultSubGraph()
+      for { n <- nodes } sg add n
+      for { r <- relationships } sg add r
+      sg
+    }
+  }
+
+  object GraphSnippet {
+    implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
+  }
+
 }

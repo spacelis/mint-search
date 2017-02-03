@@ -5,11 +5,10 @@ import java.util.stream.{Stream => JStream}
 import org.neo4j.cypher.export.SubGraph
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
-import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourhoodSearcher, SimpleGraphRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
-import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, SimpleGraphQueryBuilder}
+import uk.ac.cdrc.mintsearch.ranking.{SimpleGraphRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 import scala.compat.java8.StreamConverters._
 
@@ -18,7 +17,7 @@ import scala.compat.java8.StreamConverters._
  */
 class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourhoodSearcher
+  val graphSearcher = new NeighbourBasedSearcher
     with LegacyNeighbourBaseIndexReader
     with GraphDBContext
     with ExponentialPropagation
@@ -30,7 +29,7 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     with SimpleNodeRanking
     with SimpleGraphRanking
     with SubGraphEnumeratorContext
-    with SimpleGraphQueryBuilder {
+    with SimpleQueryBuilder {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
@@ -61,9 +60,9 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
    */
   @Procedure("mint.nagg_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
-  def search(@Name("query") query: String): JStream[SubGraph] = {
-    graphSearcher.search(graphSearcher.fromCypherCreate(query)).seqStream
-  }
+  def search(@Name("query") query: String): JStream[SubGraph] = (for {
+    g <- graphSearcher.search(graphSearcher.fromCypherCreate(query)).graphSnippets
+  } yield g.toNeo4JSubGraph.asInstanceOf[SubGraph]).seqStream
 
   /**
    * Create a Neighbour based index for all nodes

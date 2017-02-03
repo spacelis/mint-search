@@ -4,6 +4,9 @@
 package uk.ac.cdrc.mintsearch.index
 
 import org.neo4j.graphdb.Node
+import uk.ac.cdrc.mintsearch.WeightedLabelSet
+import scala.pickling._
+import scala.pickling.json._
 
 import scala.collection.JavaConverters._
 
@@ -13,6 +16,8 @@ trait LabelMaker {
   def collectLabels(n: Node): Seq[L]
   def labelEncode(label: L): String
   def labelEncodeQuery(label: L): String
+  def JSONfy(wls: WeightedLabelSet[L]): String
+  def deJSONfy(json: String): WeightedLabelSet[L]
 }
 
 trait PropertyLabelMaker extends LabelMaker {
@@ -24,5 +29,9 @@ trait PropertyLabelMaker extends LabelMaker {
 
   override def labelEncode(label: L): String = s"${label._1}:${label._2}"
   override def labelEncodeQuery(label: L): String = s"${label._1}\\:${label._2}"
+  def JSONfy(wls: WeightedLabelSet[L]): String =
+    wls.pickle.value
+  def deJSONfy(json: String): WeightedLabelSet[L] =
+    JSONPickle(json).unpickle[WeightedLabelSet[L]]
 }
 

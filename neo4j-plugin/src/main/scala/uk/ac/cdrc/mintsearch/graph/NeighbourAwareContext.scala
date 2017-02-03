@@ -3,7 +3,7 @@
  * A node is indexed by its neighbours but itself.
  */
 
-package uk.ac.cdrc.mintsearch.neighbourhood
+package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch._

@@ -8,9 +8,8 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph.{GraphSnippet, SubGraphEnumeratorContext}
+import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
-import uk.ac.cdrc.mintsearch.neighbourhood.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 import scala.collection.JavaConverters._
@@ -21,7 +20,12 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
-    val context = new GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SubGraphEnumeratorContext {
+    val context = new GraphDBContext
+      with ExponentialPropagation
+      with PropertyLabelMaker
+      with NeighbourhoodByRadius
+      with NeighbourAwareContext
+      with SubGraphEnumeratorContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -153,7 +157,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val graphs = context.assembleSubGraph(nodes.toSet).toVector
+            val graphs = context.composeGraphs(nodes.toSet).toVector
             graphs(0).nodeIds should contain oneOf (nodes(0), nodes(3))
             graphs(0).nodeIds should contain oneOf (nodes(1), nodes(4))
             graphs(0).nodeIds should contain oneOf (nodes(2), nodes(5))
@@ -195,7 +199,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
               r <- p.relationships().asScala
             } yield r).toList
 
-            val sgs = GraphSnippet(nodes, relationships)
+            val sgs = context.GraphSnippet(nodes, relationships)
             val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
             sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
           }

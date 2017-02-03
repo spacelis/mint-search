@@ -12,10 +12,10 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
-trait GraphQueryBuilder
+trait QueryBuilder
 
-trait GraphSearchQuery extends AutoCloseable {
-  import GraphQueryBuilder._
+trait GraphQuery extends AutoCloseable {
+  import QueryBuilder._
   val qdbStore: File = mkTempDir()
   val qdb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabase(qdbStore)
   override def close(): Unit = {
@@ -25,11 +25,11 @@ trait GraphSearchQuery extends AutoCloseable {
   }
 }
 
-trait SimpleGraphQueryBuilder extends GraphQueryBuilder {
+trait SimpleQueryBuilder extends QueryBuilder {
 
-  case class SimpleQuery() extends GraphSearchQuery
+  case class SimpleQuery() extends GraphQuery
 
-  def fromCypherCreate(cypher: String): GraphSearchQuery = {
+  def fromCypherCreate(cypher: String): GraphQuery = {
     val gsq = SimpleQuery()
     gsq.qdb.execute(cypher)
     gsq
@@ -37,10 +37,10 @@ trait SimpleGraphQueryBuilder extends GraphQueryBuilder {
 
 }
 
-trait DependentGraphQueryBuilder extends SimpleGraphQueryBuilder {
+trait DependentQueryBuilder extends SimpleQueryBuilder {
   self: GraphDBContext =>
 
-  def fromNeighbourHood(nodeId: NodeId, range: Int): GraphSearchQuery = {
+  def fromNeighbourHood(nodeId: NodeId, range: Int): GraphQuery = {
     assert(range > 0, "The range must be larger than 0")
     val subMatchingPatten = (for (i <- 1 to range) yield s"(_$i)") mkString "--"
     val subReturningStmt = (for (i <- 1 to range) yield s"_$i") mkString ", "
@@ -48,14 +48,15 @@ trait DependentGraphQueryBuilder extends SimpleGraphQueryBuilder {
     fromCypherQuery(query)
   }
 
-  def fromCypherQuery(query: String): GraphSearchQuery = {
+  def fromCypherQuery(query: String): GraphQuery = {
     val sWriter = new StringWriter
     new SubGraphExporter(CypherResultSubGraph.from(db.execute(query), db, true)).export(new PrintWriter(sWriter))
     fromCypherCreate(sWriter.getBuffer.toString)
   }
 
 }
-object GraphQueryBuilder {
+
+object QueryBuilder {
 
   val defaultTempDir = new File(System.getProperty("java.io.tmpdir"))
   def mkTempDir(prefix: String = "mintsearch-", suffix: String = ".tmp.d", dir: File = defaultTempDir): File = {

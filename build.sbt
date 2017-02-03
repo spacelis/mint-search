@@ -61,7 +61,7 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
     libraryDependencies ++= Seq(
       "org.neo4j" % "neo4j" % neo4j_version,
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
-      "org.scala-lang" %% "scala-pickling" % "0.9.1",
+      "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
       "org.neo4j.test" % "neo4j-harness" % neo4j_version,
       "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "test",
       "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",

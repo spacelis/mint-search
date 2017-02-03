@@ -11,14 +11,11 @@ import java.util.concurrent.TimeUnit.SECONDS
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
+import uk.ac.cdrc.mintsearch.graph.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.index.Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neighbourhood.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
-import uk.ac.cdrc.mintsearch.ranking.{NeighbourSimilarity, NodeRanking}
 
 import scala.collection.JavaConverters._
-import scala.pickling._
-import scala.pickling.json._
 
 /**
  * No text processing is configured as full text search is not the target of
@@ -32,7 +29,7 @@ trait BaseIndexManager extends GraphDBContext {
 
 trait BaseIndexReader extends BaseIndexManager {
   self: LabelMaker =>
-  def getNodes(labelSet: Set[L]): Iterator[Node]
+  def getNodesByLabels(labelSet: Set[L]): IndexedSeq[Node]
   def retrieveWeightedLabels(n: Node): WeightedLabelSet[L]
 }
 
@@ -58,8 +55,8 @@ trait Neo4JBaseIndexManager extends BaseIndexManager {
  * Reading the Lucene index for getting a list of potential matched nodes.
  * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
  */
-trait LegacyNeighbourBaseIndexReader extends Neo4JBaseIndexManager with BaseIndexReader{
-  self: NeighbourAwareContext with LabelMaker with NodeRanking with NeighbourSimilarity =>
+trait LegacyNeighbourBaseIndexReader extends BaseIndexReader with Neo4JBaseIndexManager{
+  self: LabelMaker =>
 
   def encodeQuery(labelSet: Set[L]): String = {
     (for {
@@ -67,17 +64,16 @@ trait LegacyNeighbourBaseIndexReader extends Neo4JBaseIndexManager with BaseInde
     } yield s"$labelStorePropKey:${labelEncodeQuery(l)}") mkString " "
   }
 
-  override def getNodes(labelSet: Set[L]): Iterator[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala
+  override def getNodesByLabels(labelSet: Set[L]): IndexedSeq[Node] = indexDB.query(encodeQuery(labelSet)).iterator().asScala.toIndexedSeq
 
-  override def retrieveWeightedLabels(n: Node) = {
-    n.getProperty(labelStorePropKey)
-  }
+  override def retrieveWeightedLabels(n: Node): WeightedLabelSet[L] =
+    deJSONfy(n.getProperty(labelStorePropKey).toString)
 }
 
 /**
  * Building a node index based on nodes' neighbourhoods using the Lucene.
  */
-trait LegacyNeighbourBaseIndexWriter extends Neo4JBaseIndexManager with BaseIndexWriter {
+trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndexManager {
   self: NeighbourAwareContext with LabelMaker =>
   override def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
   override def index(n: Node): Unit = {
@@ -86,10 +82,11 @@ trait LegacyNeighbourBaseIndexWriter extends Neo4JBaseIndexManager with BaseInde
     // Indexing the node and store the neighbors' labels in the node's property
     indexDB.remove(n) // Make sure the node will be replaced in the index
     indexDB.add(n, labelStorePropKey, labelWeights.keys map labelEncode mkString " ")
+    storeWeightedLabels(n, labelWeights)
   }
 
-  override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]) = {
-    n.setProperty(labelStorePropKey, wls.map((e) => (labelEncode(e._1), e._2)).pickle.value)
-  }
+  override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =
+    n.setProperty(labelStorePropKey, JSONfy(wls))
+
 }
 

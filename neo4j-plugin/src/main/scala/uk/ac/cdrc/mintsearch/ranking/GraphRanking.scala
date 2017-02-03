@@ -1,18 +1,44 @@
 package uk.ac.cdrc.mintsearch.ranking
 
-import uk.ac.cdrc.mintsearch.NodeMatchingSet
-import uk.ac.cdrc.mintsearch.graph.GraphSnippet
+import uk.ac.cdrc.mintsearch.GraphDoc
+import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.index.LabelMaker
 
 /**
-  * Created by ucfawli on 2/2/17.
+  * A component of ranking
   */
 trait GraphRanking {
-  def rankGraphs(nodeMatchingSet: NodeMatchingSet, graphSnippetList: IndexedSeq[GraphSnippet]): IndexedSeq[(GraphSnippet, Double)]
+  self: NodeRanking with SubGraphEnumeratorContext with LabelMaker =>
+  def rankGraphs(query: GraphDoc[L],
+                 nodeMatchingSet: IndexedSeq[NodeSearchResult],
+                 graphSnippetList: IndexedSeq[GraphSnippet]): IndexedSeq[(GraphSnippet, Double)]
 }
 
 trait SimpleGraphRanking extends GraphRanking {
-  override def rankGraphs(nodeMatchingSet: NodeMatchingSet, graphSnippetList: IndexedSeq[GraphSnippet]) = (for {
-    g <- graphSnippetList
-  } yield g -> 0d).sortBy(_._2)
-}
+  self: NodeRanking with SubGraphEnumeratorContext with LabelMaker =>
 
+  /**
+    * Ranking the the retrieved graph by summing matching scores of nodes inside each of them
+    *
+    * @param nodeMatchingSet Lists of matching nodes composing the graphSnippetList
+    * @param graphSnippetList A list of graph to rank
+    * @return a list of graph snippets with the scores.
+    */
+  override def rankGraphs(graphDoc: GraphDoc[L],
+                          nodeMatchingSet: IndexedSeq[NodeSearchResult],
+                          graphSnippetList: IndexedSeq[GraphSnippet]): IndexedSeq[(GraphSnippet, Double)] = {
+    val nodeScores = (for {
+      nms <- nodeMatchingSet
+      (r, s) <- nms.ranked zip nms.scores
+    } yield r.getId -> s).toMap
+
+    val graphScores = (for {
+      (g, gid) <- graphSnippetList.zipWithIndex
+      n <- g.nodeIds
+    } yield gid -> nodeScores(n)).groupBy(_._1).mapValues(s => (s map {_._2}).sum)
+
+    for {
+      (g, s) <- graphScores.toIndexedSeq.sortBy(_._2).reverse
+    } yield (graphSnippetList(g), s)
+  }
+}

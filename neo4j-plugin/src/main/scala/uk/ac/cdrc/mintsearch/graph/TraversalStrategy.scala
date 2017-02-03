@@ -1,7 +1,7 @@
 /**
  * Defines which nodes are considered as neighbours
  */
-package uk.ac.cdrc.mintsearch.neighbourhood
+package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.RelationshipType
 import org.neo4j.graphdb.traversal.{Evaluators, TraversalDescription, Uniqueness}
