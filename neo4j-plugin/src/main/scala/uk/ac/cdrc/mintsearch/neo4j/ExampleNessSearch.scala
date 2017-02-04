@@ -11,7 +11,8 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
 import scala.math._
 import scala.pickling._
-import scala.pickling.json._
+import Defaults._
+import json._
 
 /**
  * This class implements the NEighborhood based Similarity Search
