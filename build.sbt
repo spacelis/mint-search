@@ -50,7 +50,8 @@ lazy val mintsearch = (project in file(".")).
     packagedArtifacts := Map.empty,
     publish := {},
     publishLocal := {},
-    name := "mintsearch"
+    name := "mintsearch",
+    version := "0.1-SNAPSHOT"
   )
 
 
