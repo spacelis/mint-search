@@ -2,13 +2,12 @@
  * Testing the SubGraphEnumerator
  */
 
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
@@ -199,7 +198,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
               r <- p.relationships().asScala
             } yield r).toList
 
-            val sgs = context.GraphSnippet(nodes, relationships)
+            val sgs = GraphSnippet(nodes, relationships)
             val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
             sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
           }

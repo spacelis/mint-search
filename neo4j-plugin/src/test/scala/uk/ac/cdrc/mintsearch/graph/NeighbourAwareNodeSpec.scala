@@ -2,13 +2,12 @@
  * Testing NeighbourAwareNode
  */
 
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 

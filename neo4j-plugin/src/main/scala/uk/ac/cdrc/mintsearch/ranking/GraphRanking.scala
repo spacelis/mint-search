@@ -1,21 +1,21 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.GraphDoc
-import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.graph.{GraphSnippet, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.LabelMaker
 
 /**
   * A component of ranking
   */
 trait GraphRanking {
-  self: NodeRanking with SubGraphEnumeratorContext with LabelMaker =>
+  self: NodeRanking with LabelMaker =>
   def rankGraphs(query: GraphDoc[L],
                  nodeMatchingSet: IndexedSeq[NodeSearchResult],
                  graphSnippetList: IndexedSeq[GraphSnippet]): IndexedSeq[(GraphSnippet, Double)]
 }
 
 trait SimpleGraphRanking extends GraphRanking {
-  self: NodeRanking with SubGraphEnumeratorContext with LabelMaker =>
+  self: NodeRanking with LabelMaker =>
 
   /**
     * Ranking the the retrieved graph by summing matching scores of nodes inside each of them

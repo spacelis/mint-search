@@ -2,7 +2,7 @@
  * Testing NeighbourAwareNode
  */
 
-package uk.ac.cdrc.mintsearch.ranking
+package uk.ac.cdrc.mintsearch.searcher
 
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
@@ -11,9 +11,10 @@ import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
+import uk.ac.cdrc.mintsearch.ranking.{SimpleGraphRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
-class NeighbourhoodRankingSpec extends fixture.WordSpec with Matchers {
+class NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
     val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)

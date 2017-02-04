@@ -4,7 +4,7 @@
 package uk.ac.cdrc.mintsearch.search
 
 import uk.ac.cdrc.mintsearch.GraphDoc
-import uk.ac.cdrc.mintsearch.graph.{NeighbourAwareContext, SubGraphEnumeratorContext, TraversalStrategy}
+import uk.ac.cdrc.mintsearch.graph.{GraphSnippet, NeighbourAwareContext, SubGraphEnumeratorContext, TraversalStrategy}
 import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j._
 import uk.ac.cdrc.mintsearch.ranking.{GraphRanking, NodeRanking}
