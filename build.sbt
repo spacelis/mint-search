@@ -16,6 +16,14 @@ val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within
 val neo4jDeployJars = TaskKey[Seq[File]]("Collect jars that needs to be deployed along with the Neo4J plugin")
 
 
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+
+import scalariform.formatter.preferences._
+
+SbtScalariform.scalariformSettings
+
+
 lazy val devDeploySettings = Seq(
   deployTask := {
     val (_, file) = packagedArtifact.in(Compile, packageBin).value
@@ -72,7 +80,12 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "com.sun.jersey" % "jersey-server" % "1.19" % "test",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test"
     ),
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+
+    ScalariformKeys.preferences := ScalariformKeys.preferences.value
+      .setPreference(PlaceScaladocAsterisksBeneathSecondAsterisk, true)
+      .setPreference(DoubleIndentClassDeclaration, true)
+      .setPreference(SpacesAroundMultiImports, false)
   )
 
 devServerStartTask := {
