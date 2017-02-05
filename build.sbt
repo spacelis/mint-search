@@ -86,7 +86,7 @@ devServerRestartTask := {
 
 
 devServerLogsTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose logs") !
+  Seq("bash", "-c", "cd dev_server && docker-compose logs --tail=100") !
 }
 
 devServerRelaunchTask := {
