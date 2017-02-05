@@ -2,7 +2,7 @@ logLevel := Level.Warn
 
 resolvers += Resolver.sonatypeRepo("releases")
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
+resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
 
 addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "0.5.5")
 

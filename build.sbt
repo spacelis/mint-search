@@ -1,5 +1,5 @@
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
+resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
 
 val neo4j_version = "3.1.1"
 
