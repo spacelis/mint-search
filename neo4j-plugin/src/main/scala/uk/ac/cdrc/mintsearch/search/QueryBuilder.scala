@@ -1,6 +1,6 @@
 /**
- * Graph query builders for graph retrieval
- */
+  * Graph query builders for graph retrieval
+  */
 package uk.ac.cdrc.mintsearch.search
 
 import java.io.{File, IOException, PrintWriter, StringWriter}

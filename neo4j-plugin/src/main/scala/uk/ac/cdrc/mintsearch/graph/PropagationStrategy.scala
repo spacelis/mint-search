@@ -1,6 +1,6 @@
 /**
- * Defines how node labels should be propagate to neighbours
- */
+  * Defines how node labels should be propagate to neighbours
+  */
 package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.Path

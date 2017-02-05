@@ -1,6 +1,6 @@
 /**
- * Defines which nodes are considered as neighbours
- */
+  * Defines which nodes are considered as neighbours
+  */
 package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.RelationshipType
@@ -15,7 +15,12 @@ trait NeighbourhoodByRadiusAndRelationships extends TraversalStrategy {
   val radius: Int
   val relTypes: Seq[String]
   override lazy val traversalDescription: TraversalDescription =
-    relTypes.foldLeft(new MonoDirectionalTraversalDescription(): TraversalDescription)((td, rType) => td.relationships(RelationshipType.withName(rType)))
+    relTypes
+      .foldLeft(
+        new MonoDirectionalTraversalDescription(): TraversalDescription
+      )(
+        (td, rType) => td.relationships(RelationshipType.withName(rType))
+      )
       .uniqueness(Uniqueness.NODE_GLOBAL)
       .evaluator(Evaluators.toDepth(radius))
 

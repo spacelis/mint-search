@@ -1,6 +1,6 @@
 /**
- * Implementation of graph ranking based on neighbours
- */
+  * Implementation of graph ranking based on neighbours
+  */
 package uk.ac.cdrc.mintsearch.search
 
 import uk.ac.cdrc.mintsearch.GraphDoc
@@ -9,22 +9,15 @@ import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j._
 import uk.ac.cdrc.mintsearch.ranking.{GraphRanking, NodeRanking}
 
+case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphSnippet], scores: IndexedSeq[Double])
+
 trait GraphSearcher {
-  self: QueryAnalyzer with LabelMaker with  SubGraphEnumeratorContext =>
+  self: QueryAnalyzer with LabelMaker with SubGraphEnumeratorContext =>
   def search(gsq: GraphQuery): GraphSearchResult
-  case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphSnippet], scores: IndexedSeq[Double])
 }
 
 trait NeighbourBasedSearcher extends GraphSearcher {
-  self: BaseIndexReader
-    with GraphDBContext
-    with LabelMaker
-    with TraversalStrategy
-    with NeighbourAwareContext
-    with NeighbourAggregatedAnalyzer
-    with NodeRanking
-    with GraphRanking
-    with SubGraphEnumeratorContext =>
+  self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with GraphRanking with SubGraphEnumeratorContext =>
 
   override def search(gsq: GraphQuery): GraphSearchResult = {
     val analyzedQuery = analyze(gsq)
@@ -33,10 +26,17 @@ trait NeighbourBasedSearcher extends GraphSearcher {
   }
 
   def graphDocSearch(query: GraphDoc[L]): IndexedSeq[(GraphSnippet, Double)] = {
+
     val nodeMatchingSet = for {
       (n, wls) <- query.toIndexedSeq
     } yield searchNodes(n, wls)
-    rankGraphs(query, nodeMatchingSet, composeGraphs(nodeMatchingSet.flatMap(_.ranked).map(_.getId).toSet).toIndexedSeq)
+
+    val nodePool = (for {
+      nodeMatchings <- nodeMatchingSet
+      n <- nodeMatchings.ranked
+    } yield n.getId).toSet
+
+    rankGraphs(query, nodeMatchingSet, composeGraphs(nodePool).toIndexedSeq)
   }
 
 }

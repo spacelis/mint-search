@@ -17,14 +17,16 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
 
-    lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+    lazy val driver: Driver = GraphDatabase.driver(
+      neo4jServer.boltURI(),
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val context = new GraphDBContext
-      with ExponentialPropagation
-      with PropertyLabelMaker
-      with NeighbourhoodByRadius
-      with NeighbourAwareContext
-      with SubGraphEnumeratorContext {
+        with ExponentialPropagation
+        with PropertyLabelMaker
+        with NeighbourhoodByRadius
+        with NeighbourAwareContext
+        with SubGraphEnumeratorContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

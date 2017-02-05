@@ -18,7 +18,9 @@ class ExponentialPropagationSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
 
-    lazy val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+    lazy val driver: Driver = GraphDatabase.driver(
+      neo4jServer.boltURI(),
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
 
     val context = new GraphDBContext with PropertyLabelMaker with ExponentialPropagation {
       override val labelStorePropKey: String = s"__nagg_0"

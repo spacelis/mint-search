@@ -1,6 +1,6 @@
 /**
- * Test GraphSearchQuery
- */
+  * Test GraphSearchQuery
+  */
 package uk.ac.cdrc.mintsearch.searcher
 
 import org.neo4j.graphdb.Label
@@ -25,7 +25,8 @@ class GraphSearchQuerySpec extends WordSpec with Matchers {
     "handle two nodes" in new SimpleQueryBuilder {
       WithResource(fromCypherCreate("create (n: Person {name: 'James'}), (m: Person {name: 'Mary'})")) { gq =>
         WithResource(gq.qdb.beginTx()) { _ =>
-          gq.qdb.findNodes(Label.label("Person")).asScala.take(2).toList map { _.getProperty("name") } shouldBe List("James", "Mary")
+          val names = gq.qdb.findNodes(Label.label("Person")).asScala.take(2).toList map { _.getProperty("name") }
+          names shouldBe List("James", "Mary")
         }
       }
     }

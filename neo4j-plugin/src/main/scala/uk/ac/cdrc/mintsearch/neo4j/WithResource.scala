@@ -1,7 +1,7 @@
 /**
- * Copied from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
- * with adaption for throwing exceptions as required for running tests
- */
+  * Copied from http://codereview.stackexchange.com/questions/79267/scala-trywith-that-closes-resources-automatically
+  * with adaption for throwing exceptions as required for running tests
+  */
 
 package uk.ac.cdrc.mintsearch.neo4j
 

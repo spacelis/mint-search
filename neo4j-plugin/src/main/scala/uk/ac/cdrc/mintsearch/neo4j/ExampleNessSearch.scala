@@ -10,22 +10,21 @@ import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
 import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
 import scala.math._
-import scala.pickling._
-import Defaults._
-import json._
+import scala.pickling.Defaults._
+import scala.pickling.json._
 
 /**
- * This class implements the NEighborhood based Similarity Search
- */
+  * This class implements the NEighborhood based Similarity Search
+  */
 class ExampleNessSearch extends Neo4JProcedure {
   import ExampleNessSearch._
   /**
-   *
-   * @param propName the property name for the labels used in the index
-   * @param relType the name of the relationtype used in the index the index
-   * @param query the lucene query.
-   * @return the nodes found by the query
-   */
+    *
+    * @param propName the property name for the labels used in the index
+    * @param relType the name of the relationtype used in the index the index
+    * @param query the lucene query.
+    * @return the nodes found by the query
+    */
   @Procedure("mint.ness_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
   def search(
@@ -40,14 +39,14 @@ class ExampleNessSearch extends Neo4JProcedure {
   }
 
   /**
-   *
-   * @param nodeId the id of the node to index
-   * @param relType the relation type used as neighboring
-   * @param propName the property name for the labels, the labels should be stored as a space-separated words
-   * @param depth the label propagation range, i.e., number of hops a label can propagate though neighbor nodes
-   * @param alpha the alpha (propagating damper) and 0 < alpha < 1, i.e., labels are propagated to the neighbor with
-   *              a less weight
-   */
+    *
+    * @param nodeId the id of the node to index
+    * @param relType the relation type used as neighboring
+    * @param propName the property name for the labels, the labels should be stored as a space-separated words
+    * @param depth the label propagation range, i.e., number of hops a label can propagate though neighbor nodes
+    * @param alpha the alpha (propagating damper) and 0 < alpha < 1, i.e., labels are propagated to the neighbor with
+    *              a less weight
+    */
   @Procedure("mint.ness_index")
   @PerformsWrites
   def index(

@@ -7,7 +7,7 @@ import uk.ac.cdrc.mintsearch.NodeId
 /**
   * This class is an intermediate result collecting bin as a counter part in scala for
   * Neo4J's class implementing SubGraph
- *
+  *
   * @param nodes the nodes in a sub graph
   * @param relationships the relationships in a sub graph
   */

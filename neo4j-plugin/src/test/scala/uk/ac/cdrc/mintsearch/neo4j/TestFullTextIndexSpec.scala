@@ -6,7 +6,7 @@ package uk.ac.cdrc.mintsearch.neo4j
 
 import org.scalatest._
 import org.neo4j.driver.v1._
-import org.neo4j.harness.{ ServerControls, TestServerBuilder, TestServerBuilders }
+import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 
 class TestFullTextIndexSpec extends FlatSpec {
 
@@ -21,7 +21,9 @@ class TestFullTextIndexSpec extends FlatSpec {
   }
 
   "A test" should "run" in new Neo4JFixtureFullTextSearchProcedure {
-    val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+    val driver: Driver = GraphDatabase.driver(
+      neo4jServer.boltURI(),
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
     // Given I've started Neo4j with the FullTextIndex procedure class
     //       which my 'neo4j' rule above does.
     val session: Session = driver.session()

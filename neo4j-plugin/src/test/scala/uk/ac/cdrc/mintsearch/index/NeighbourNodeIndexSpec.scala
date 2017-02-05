@@ -10,15 +10,21 @@ import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
-import uk.ac.cdrc.mintsearch.ranking.{SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleNodeRanking}
 
 import scala.collection.JavaConverters._
 
 class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
-    val driver: Driver = GraphDatabase.driver(neo4jServer.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
-    val indexWriter = new LegacyNeighbourBaseIndexWriter with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
+    val driver: Driver = GraphDatabase.driver(
+      neo4jServer.boltURI(),
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+    val indexWriter = new LegacyNeighbourBaseIndexWriter
+        with ExponentialPropagation
+        with PropertyLabelMaker
+        with NeighbourhoodByRadius
+        with NeighbourAwareContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -27,7 +33,13 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
       override val db: GraphDatabaseService = neo4jServer.graph()
       override val indexName: String = "ness_index"
     }
-    val indexReader = new LegacyNeighbourBaseIndexReader with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with SimpleNeighbourSimilarity with SimpleNodeRanking {
+    val indexReader = new LegacyNeighbourBaseIndexReader
+        with ExponentialPropagation
+        with PropertyLabelMaker
+        with NeighbourhoodByRadius
+        with NeighbourAwareContext
+        with NESSSimilarity
+        with SimpleNodeRanking {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

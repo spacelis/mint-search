@@ -11,44 +11,44 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
 
 /**
- * This is an example showing how you could expose Neo4j's full text indexes as
- * two procedures - one for updating indexes, and one for querying by label and
- * the lucene query language.
- */
+  * This is an example showing how you could expose Neo4j's full text indexes as
+  * two procedures - one for updating indexes, and one for querying by label and
+  * the lucene query language.
+  */
 class FullTextIndex extends Neo4JProcedure {
 
   /**
-   * This declares the first of two procedures in this class - a
-   * procedure that performs queries in a legacy index.
-   *
-   * It returns a Stream of Records, where records are
-   * specified per procedure. This particular procedure returns
-   * a stream of {@link SearchHit} records.
-   *
-   * The arguments to this procedure are annotated with the
-   * {@link Name} annotation and define the position, name
-   * and type of arguments required to invoke this procedure.
-   * There is a limited set of types you can use for arguments,
-   * these are as follows:
-   *
-   * <ul>
-   *     <li>{@link String}</li>
-   *     <li>{@link Long} or {@code long}</li>
-   *     <li>{@link Double} or {@code double}</li>
-   *     <li>{@link Number}</li>
-   *     <li>{@link Boolean} or {@code boolean}</li>
-   *     <li>{@link java.util.Map} with key {@link String} and value {@link Object}</li>
-   *     <li>{@link java.util.List} of elements of any valid argument type, including {@link java.util.List}</li>
-   *     <li>{@link Object}, meaning any of the valid argument types</li>
-   * </ul>
-   *
-   * @param label the label name to query by
-   * @param query the lucene query, for instance `name:Brook*` to
-   *              search by property `name` and find any value starting
-   *              with `Brook`. Please refer to the Lucene Query Parser
-   *              documentation for full available syntax.
-   * @return the nodes found by the query
-   */
+    * This declares the first of two procedures in this class - a
+    * procedure that performs queries in a legacy index.
+    *
+    * It returns a Stream of Records, where records are
+    * specified per procedure. This particular procedure returns
+    * a stream of {@link SearchHit} records.
+    *
+    * The arguments to this procedure are annotated with the
+    * {@link Name} annotation and define the position, name
+    * and type of arguments required to invoke this procedure.
+    * There is a limited set of types you can use for arguments,
+    * these are as follows:
+    *
+    * <ul>
+    *     <li>{@link String}</li>
+    *     <li>{@link Long} or {@code long}</li>
+    *     <li>{@link Double} or {@code double}</li>
+    *     <li>{@link Number}</li>
+    *     <li>{@link Boolean} or {@code boolean}</li>
+    *     <li>{@link java.util.Map} with key {@link String} and value {@link Object}</li>
+    *     <li>{@link java.util.List} of elements of any valid argument type, including {@link java.util.List}</li>
+    *     <li>{@link Object}, meaning any of the valid argument types</li>
+    * </ul>
+    *
+    * @param label the label name to query by
+    * @param query the lucene query, for instance `name:Brook*` to
+    *              search by property `name` and find any value starting
+    *              with `Brook`. Please refer to the Lucene Query Parser
+    *              documentation for full available syntax.
+    * @return the nodes found by the query
+    */
   @Procedure("mint.fulltext_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
   def search(
@@ -72,23 +72,23 @@ class FullTextIndex extends Neo4JProcedure {
   }
 
   /**
-   * This is the second procedure defined in this class, it is used to update the
-   * index with nodes that should be queryable. You can send the same node multiple
-   * times, if it already exists in the index the index will be updated to match
-   * the current state of the node.
-   *
-   * This procedure works largely the same as {@link #search(String, String)},
-   * with two notable differences. One, it is annotated with {@link PerformsWrites},
-   * which is <i>required</i> if you want to perform updates to the graph in your
-   * procedure.
-   *
-   * Two, it returns {@code void} rather than a stream. This is simply a short-hand
-   * for saying our procedure always returns an empty stream of empty records.
-   *
-   * @param nodeId the id of the node to index
-   * @param propKeys a list of property keys to index, only the ones the node
-   *                 actually contains will be added
-   */
+    * This is the second procedure defined in this class, it is used to update the
+    * index with nodes that should be queryable. You can send the same node multiple
+    * times, if it already exists in the index the index will be updated to match
+    * the current state of the node.
+    *
+    * This procedure works largely the same as {@link #search(String, String)},
+    * with two notable differences. One, it is annotated with {@link PerformsWrites},
+    * which is <i>required</i> if you want to perform updates to the graph in your
+    * procedure.
+    *
+    * Two, it returns {@code void} rather than a stream. This is simply a short-hand
+    * for saying our procedure always returns an empty stream of empty records.
+    *
+    * @param nodeId the id of the node to index
+    * @param propKeys a list of property keys to index, only the ones the node
+    *                 actually contains will be added
+    */
   @Procedure("mint.fulltext_index")
   @PerformsWrites
   def index(

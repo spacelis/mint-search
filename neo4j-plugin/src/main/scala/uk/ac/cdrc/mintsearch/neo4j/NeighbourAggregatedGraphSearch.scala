@@ -7,29 +7,17 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Name, PerformsWrites, Procedure}
 import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
 import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
-import uk.ac.cdrc.mintsearch.ranking.{SimpleGraphRanking, SimpleNeighbourSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{SimpleGraphRanking, NESSSimilarity, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 import scala.compat.java8.StreamConverters._
 
 /**
- * This class implements the NEighborhood based Similarity Search
- */
+  * This class implements the NEighborhood based Similarity Search
+  */
 class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val graphSearcher = new NeighbourBasedSearcher
-    with LegacyNeighbourBaseIndexReader
-    with GraphDBContext
-    with ExponentialPropagation
-    with PropertyLabelMaker
-    with NeighbourhoodByRadius
-    with NeighbourAwareContext
-    with NeighbourAggregatedAnalyzer
-    with SimpleNeighbourSimilarity
-    with SimpleNodeRanking
-    with SimpleGraphRanking
-    with SubGraphEnumeratorContext
-    with SimpleQueryBuilder {
+  val graphSearcher = new NeighbourBasedSearcher with LegacyNeighbourBaseIndexReader with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NESSSimilarity with SimpleNodeRanking with SimpleGraphRanking with SubGraphEnumeratorContext with SimpleQueryBuilder {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
@@ -39,12 +27,7 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
 
-  val indexWriter = new LegacyNeighbourBaseIndexWriter
-    with GraphDBContext
-    with ExponentialPropagation
-    with PropertyLabelMaker
-    with NeighbourhoodByRadius
-    with NeighbourAwareContext {
+  val indexWriter = new LegacyNeighbourBaseIndexWriter with GraphDBContext with ExponentialPropagation with PropertyLabelMaker with NeighbourhoodByRadius with NeighbourAwareContext {
 
     override val radius: Int = 2
     override val propagationFactor: Double = 0.5
@@ -54,10 +37,10 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     override val db: GraphDatabaseService = NeighbourAggregatedGraphSearch.this.db
   }
   /**
-   *
-   * @param query    A cypher statement for creating a graph to search with
-   * @return the nodes found by the query
-   */
+    *
+    * @param query    A cypher statement for creating a graph to search with
+    * @return the nodes found by the query
+    */
   @Procedure("mint.nagg_search")
   @PerformsWrites // TODO: This is here as a workaround, because index().forNodes() is not read-only
   def search(@Name("query") query: String): JStream[SubGraph] = (for {
@@ -65,8 +48,8 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
   } yield g.toNeo4JSubGraph.asInstanceOf[SubGraph]).seqStream
 
   /**
-   * Create a Neighbour based index for all nodes
-   */
+    * Create a Neighbour based index for all nodes
+    */
   @Procedure("mint.nagg_index")
   @PerformsWrites
   def index(): Unit = {
