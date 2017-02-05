@@ -1,6 +1,6 @@
 /**
- * Testing NeighbourAwareNode
- */
+  * Testing NeighbourAwareNode
+  */
 
 package uk.ac.cdrc.mintsearch.searcher
 
@@ -19,7 +19,8 @@ class NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
     val driver: Driver = GraphDatabase.driver(
       neo4jServer.boltURI(),
-      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
+    )
     val indexWriter = new LegacyNeighbourBaseIndexWriter
         with ExponentialPropagation
         with PropertyLabelMaker

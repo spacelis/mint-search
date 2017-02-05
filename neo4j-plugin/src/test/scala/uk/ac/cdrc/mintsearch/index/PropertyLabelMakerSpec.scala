@@ -1,6 +1,6 @@
 /**
- * Test LabelMaker
- */
+  * Test LabelMaker
+  */
 package uk.ac.cdrc.mintsearch.index
 
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
@@ -16,7 +16,8 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(
       neo4jServer.boltURI(),
-      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
+    )
 
     val context = new GraphDBContext with PropertyLabelMaker with ExponentialPropagation {
       override val labelStorePropKey: String = s"__nagg_0"

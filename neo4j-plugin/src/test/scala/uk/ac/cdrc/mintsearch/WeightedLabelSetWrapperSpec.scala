@@ -1,6 +1,6 @@
 /**
- *  Tests for NeighbourAwareNodeWrapper
- */
+  *  Tests for NeighbourAwareNodeWrapper
+  */
 package uk.ac.cdrc.mintsearch
 
 import org.scalatest.{Matchers, WordSpec}

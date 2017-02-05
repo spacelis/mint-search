@@ -1,6 +1,6 @@
 /**
- * Testing the SubGraphEnumerator
- */
+  * Testing the SubGraphEnumeratorContext
+  */
 
 package uk.ac.cdrc.mintsearch.graph
 
@@ -19,14 +19,15 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(
       neo4jServer.boltURI(),
-      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
+    )
 
     val context = new GraphDBContext
-        with ExponentialPropagation
-        with PropertyLabelMaker
-        with NeighbourhoodByRadius
-        with NeighbourAwareContext
-        with SubGraphEnumeratorContext {
+      with ExponentialPropagation
+      with PropertyLabelMaker
+      with NeighbourhoodByRadius
+      with NeighbourAwareContext
+      with SubGraphEnumeratorContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5

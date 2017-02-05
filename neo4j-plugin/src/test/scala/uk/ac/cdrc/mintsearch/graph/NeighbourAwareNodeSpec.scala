@@ -1,6 +1,6 @@
 /**
- * Testing NeighbourAwareNode
- */
+  * Testing NeighbourAwareNode
+  */
 
 package uk.ac.cdrc.mintsearch.graph
 
@@ -17,7 +17,8 @@ class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
 
     lazy val driver: Driver = GraphDatabase.driver(
       neo4jServer.boltURI(),
-      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig)
+      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
+    )
 
     val context = new GraphDBContext
         with ExponentialPropagation
@@ -96,14 +97,14 @@ class NeighbourAwareNodeSpec extends fixture.WordSpec with Matchers {
           // create a simple graph with two order of relationship friend
           val nodeId: Long = session.run(
             """CREATE
-            | (a: Person {name: 'Alice'}),
-            | (b: Person {name: 'Bob'}),
-            | (c: Person {name: 'Carl'}),
-            | (d: Person {name: 'David'}),
-            | (e: Person {name: 'Elizabeth'}),
-            | (a)-[:Friend]->(b)-[:Friend]->(c),
-            | (a)-[:Friend]->(d)-[:Friend]->(e)
-            | RETURN id(a)""".stripMargin
+              | (a: Person {name: 'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'}),
+              | (d: Person {name: 'David'}),
+              | (e: Person {name: 'Elizabeth'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c),
+              | (a)-[:Friend]->(d)-[:Friend]->(e)
+              | RETURN id(a)""".stripMargin
           ).single().get(0).asLong()
 
           // create a wrapper function

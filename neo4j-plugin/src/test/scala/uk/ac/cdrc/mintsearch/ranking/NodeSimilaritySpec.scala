@@ -20,8 +20,8 @@ class NodeSimilaritySpec extends WordSpec with Matchers {
 
     "handle empty" in new NESSSimilarity with PropertyLabelMaker {
       override val labelStorePropKey: String = ""
-      val a: Map[(String,String), Double] = Map()
-      val b: Map[(String,String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
+      val a: Map[(String, String), Double] = Map()
+      val b: Map[(String, String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
       similarity(a, b) should be(0d)
       similarity(b, a) should be(0d)
       similarity(a, a) should be(0d)
@@ -30,8 +30,8 @@ class NodeSimilaritySpec extends WordSpec with Matchers {
 
     "handle no intersection" in new NESSSimilarity with PropertyLabelMaker {
       override val labelStorePropKey: String = ""
-      val a: Map[(String,String), Double] = Map(("name", "carl") -> 3d, ("name", "david") -> 2d)
-      val b: Map[(String,String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
+      val a: Map[(String, String), Double] = Map(("name", "carl") -> 3d, ("name", "david") -> 2d)
+      val b: Map[(String, String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
       similarity(a, b) should be(0d)
       similarity(b, a) should be(0d)
       similarity(a, a) should be(5d)
