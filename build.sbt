@@ -1,7 +1,7 @@
 
 resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 
-val neo4j_version = "3.0.7"
+val neo4j_version = "3.1.1"
 
 val deployTask = TaskKey[Unit]("deploy", "Copies assembly jar to remote location")
 
@@ -72,7 +72,7 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
       "org.neo4j.test" % "neo4j-harness" % neo4j_version,
-      "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "test",
+      "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
       "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
       "org.neo4j" % "neo4j-kernel" % neo4j_version % "test",
       "org.neo4j" % "neo4j-graph-algo" % neo4j_version % "test",
