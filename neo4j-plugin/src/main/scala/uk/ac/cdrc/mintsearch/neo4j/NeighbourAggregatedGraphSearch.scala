@@ -21,7 +21,7 @@ object ServiceStub {
 
   private var indexWriter: LegacyNeighbourBaseIndexWriter = _
 
-  def getSearcher(db: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder = {
+  def getSearcher(gdb: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder = {
     if (graphSearcher == null)
       graphSearcher = new NeighbourBasedSearcher
           with LegacyNeighbourBaseIndexReader
@@ -42,12 +42,12 @@ object ServiceStub {
 
         override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
         override val labelStorePropKey: String = s"__nagg_$radius"
-        override val db: GraphDatabaseService = db
+        override val db: GraphDatabaseService = gdb
       }
     graphSearcher
   }
 
-  def getIndexWriter(db: GraphDatabaseService): LegacyNeighbourBaseIndexWriter = {
+  def getIndexWriter(gdb: GraphDatabaseService): LegacyNeighbourBaseIndexWriter = {
     if (indexWriter == null)
       indexWriter = new LegacyNeighbourBaseIndexWriter
           with GraphDBContext
@@ -61,7 +61,7 @@ object ServiceStub {
 
         override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
         override val labelStorePropKey: String = s"__nagg_$radius"
-        override val db: GraphDatabaseService = db
+        override val db: GraphDatabaseService = gdb
       }
     indexWriter
   }
