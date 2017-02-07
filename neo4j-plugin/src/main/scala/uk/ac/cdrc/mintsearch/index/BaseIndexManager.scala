@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.index.Index
-import uk.ac.cdrc.mintsearch.{WeightedLabelSet, index}
+import uk.ac.cdrc.mintsearch.WeightedLabelSet
 import uk.ac.cdrc.mintsearch.graph.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.index.Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
