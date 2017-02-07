@@ -11,6 +11,7 @@ import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBased
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
+import scala.util.control.NonFatal
 
 /**
   * This stub is to avoid the non-static/final fields in Neo4J procedure definition.
@@ -79,15 +80,31 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
     */
   @Procedure(name="mint.nagg_search", mode=Mode.WRITE)
   def search(@Name("query") query: String): JStream[GraphResult] = {
-    val searcher = ServiceStub.getSearcher(db)
-    (for {
-      g <- searcher.search(searcher.fromCypherCreate(query)).graphSnippets
-    } yield new GraphResult(g.nodes.asJava, g.relationships.asJava)).seqStream
+    try {
+      val searcher = ServiceStub.getSearcher(db)
+      WithResource(searcher.fromCypherCreate(query)){ q =>
+        (for {
+          g <- searcher.search(q).graphSnippets
+        } yield new GraphResult(g.nodes.asJava, g.relationships.asJava)).seqStream
+      }
+    } catch {
+      case NonFatal(ex) =>
+        log.error("Search Failed", ex)
+        throw ex
+    }
   }
 
   /**
     * Create a Neighbour based index for all nodes
     */
   @Procedure(name="mint.nagg_index", mode=Mode.SCHEMA)
-  def index(): Unit = ServiceStub.getIndexWriter(db).index()
+  def index(): Unit = {
+    try {
+      ServiceStub.getIndexWriter(db).index()
+    } catch {
+      case NonFatal(ex) =>
+        log.error("Index Failed!", ex)
+        throw ex
+    }
+  }
 }

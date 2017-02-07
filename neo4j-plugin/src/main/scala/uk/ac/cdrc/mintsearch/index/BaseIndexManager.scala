@@ -13,7 +13,7 @@ import org.neo4j.graphdb.index.Index
 import uk.ac.cdrc.mintsearch.{WeightedLabelSet, index}
 import uk.ac.cdrc.mintsearch.graph.NeighbourAwareContext
 import uk.ac.cdrc.mintsearch.index.Neo4JIndexTypes._
-import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
+import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 import scala.collection.JavaConverters._
 
@@ -75,7 +75,10 @@ trait LegacyNeighbourBaseIndexReader extends BaseIndexReader with Neo4JBaseIndex
   */
 trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndexManager {
   self: NeighbourAwareContext with LabelMaker =>
-  override def index(): Unit = for (n <- db.getAllNodes.asScala) index(n)
+  override def index(): Unit = WithResource(db.beginTx()){tx =>
+    for (n <- db.getAllNodes.asScala) index(n)
+    tx.success()
+  }
   override def index(n: Node): Unit = {
     val labelWeights = n.collectNeighbourhoodLabels
 
