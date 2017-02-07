@@ -1,10 +1,6 @@
 package uk.ac.cdrc.mintsearch.neo4j;
 
-/**
- * Created by ucfawli on 11/10/16.
- */
-
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 
@@ -18,7 +14,7 @@ public abstract class Neo4JProcedure
     // This field declares that we need a GraphDatabaseService
     // as context when any procedure in this class is invoked
     @Context
-    public GraphDatabaseService db;
+    public GraphDatabaseAPI db;
 
     // This gives us a log instance that outputs messages to the
     // standard log, normally found under `data/log/console.log`
