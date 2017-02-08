@@ -1,9 +1,101 @@
+import scala.annotation.tailrec
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
+/**
+  * The following are auxiliary functions for building files
+  */
 
-val neo4j_version = "3.1.1"
+val neo4jDeployJars = TaskKey[Seq[(String, File)]]("Collect jars that needs to be deployed along with the Neo4J plugin")
+
+val depGraph = TaskKey[Map[ModuleID, Set[ModuleID]]]("Build dependency graph for the project")
+
+val jarCollection = TaskKey[Map[ModuleID, Seq[File]]]("The total collection of jars")
+
+@tailrec
+def expandDependencies(seeds: Set[String], graph: Map[String, Set[String]]): Set[String] = {
+  val newDep = for {
+    m <- seeds
+    ds <- graph.get(m).toSet[Set[String]]
+    d <- ds
+  } yield d
+  if (newDep subsetOf seeds)
+    seeds
+  else
+    expandDependencies(seeds ++ newDep, graph)
+}
+
+def mkModuleRef(is: Option[IvyScala]) = (m: ModuleID) =>
+  s"${m.organization}:${(for(cvf <- CrossVersion(m, is)) yield cvf(m.name)) getOrElse m.name}:${m.revision}"
 
 val deployTask = TaskKey[Unit]("deploy", "Copies assembly jar to remote location")
+
+lazy val devDeploySettings = Seq(
+  deployTask := {
+    val is = (ivyScala in Compile).value
+    val mkModRef = mkModuleRef(is)
+
+    val (msID, msJar) = packagedArtifact.in(Compile, packageBin).value
+    val remote = "dev_server/plugins"
+
+    for ((m, f) <- neo4jDeployJars.value :+ (msID.name, msJar))
+    {
+      println(s"Copy $m -> $remote")
+      Seq("cp", f.getAbsolutePath, remote) !
+    }
+  },
+  neo4jDeployJars := {
+    val is = (ivyScala in Compile).value
+    val mkModRef = mkModuleRef(is)
+
+    val graph = depGraph.value map {
+      case (k, v) => mkModRef(k) -> v.map(mkModRef)
+    }
+
+    val coll = jarCollection.value map {
+      case (k, v) => mkModRef(k) -> v
+    }
+
+    val toDeploy = for {
+      exDep <- (libraryDependencies in Compile).value.toSet
+      if ! exDep.organization.startsWith("org.neo4j")
+      if (exDep.configurations match {case Some(_) => false; case _ => true})
+    } yield mkModRef(exDep)
+
+    val toDeployEx: Seq[String] = expandDependencies(toDeploy, graph)
+      .map(s => s.splitAt(s lastIndexOf ":"))
+      .groupBy(_._1)
+      .mapValues(_.toSeq.map(_._2).sorted.reverse.head).toSeq
+      .map(v => s"${v._1}${v._2}")
+
+    for {
+      m <- toDeployEx
+      f <- coll(m).toSet[File]
+    } yield (m, f)
+  },
+  depGraph := {
+    (for {
+      c <- update.value.configurations
+      r <- c.details
+      m <- r.modules
+      caller <- m.callers
+    } yield caller.caller -> m.module)
+      .groupBy(_._1)
+      .mapValues((p: Seq[(ModuleID, ModuleID)]) =>
+        p.map(_._2).toSet
+      )
+  },
+  jarCollection := {
+    (for {
+      c <- update.value.configurations
+      r <- c.details
+      m <- r.modules
+    } yield m.module -> m.artifacts.map(_._2)).toMap
+  }
+
+)
+
+/**
+  * Dev server tasks
+  */
 
 val devServerStartTask = TaskKey[Unit]("devStart", "Start the dev server within a docker container")
 
@@ -13,39 +105,44 @@ val devServerRelaunchTask = TaskKey[Unit]("devRelaunch", "Re-start the dev serve
 
 val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
-val neo4jDeployJars = TaskKey[Seq[File]]("Collect jars that needs to be deployed along with the Neo4J plugin")
+devServerStartTask := {
+  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
+}
 
 
-lazy val devDeploySettings = Seq(
-  deployTask := {
-    val (_, file) = packagedArtifact.in(Compile, packageBin).value
-    val remote = "dev_server/plugins"
+devServerRestartTask := {
+  Seq("bash", "-c", "cd dev_server && docker-compose restart") !
+}
 
-    for (f <- neo4jDeployJars.value :+ file)
-      {
-        println(s"Copy $f -> $remote")
-        Seq("cp", f.getAbsolutePath, remote) !
-      }
-  },
-  neo4jDeployJars := {
-    val is = (ivyScala in Compile).value
-    def mkModuleRef(m: ModuleID) = s"${m.organization}:${(for(cvf <- CrossVersion(m, is)) yield cvf(m.name)) getOrElse m.name}:${m.revision}"
-    val libMap = (for (p <- (fullClasspath in Compile).value;
-         m <- p.metadata.get(moduleID.key))
-      yield mkModuleRef(m) -> p.data).toMap
-    for (m <- libraryDependencies.value
-         if m.organization != "org.neo4j";
-         verM = mkModuleRef(m)
-         if libMap contains verM)
-      yield libMap(verM)
-  }
-)
+
+devServerLogsTask := {
+  Seq("bash", "-c", "cd dev_server && docker-compose logs --tail=100") !
+}
+
+devServerRelaunchTask := {
+  Seq("bash", "-c", "cd dev_server && docker-compose stop") !
+
+  Seq("bash", "-c", "cd dev_server && sudo rm -rf data/databases/graph.db") !
+
+  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
+
+}
+
+
+/**
+  * Building tasks
+  */
+
+resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
+
+val neo4j_version = "3.1.1"
 
 lazy val mintsearch = (project in file(".")).
   aggregate(neo4j_plugin).
   settings(inThisBuild(List(
       organization := "cdrc.ac.uk",
-      scalaVersion := "2.11.8"
+      scalaVersion := "2.11.8",
+      crossScalaVersions := Seq()
     )),
     packagedArtifacts := Map.empty,
     publish := {},
@@ -75,25 +172,4 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
     parallelExecution in Test := false
   )
 
-devServerStartTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
-}
 
-
-devServerRestartTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose restart") !
-}
-
-
-devServerLogsTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose logs --tail=100") !
-}
-
-devServerRelaunchTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose stop") !
-
-  Seq("bash", "-c", "cd dev_server && sudo rm -rf data/databases/graph.db") !
-
-  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
-
-}
