@@ -131,9 +131,6 @@ devServerRelaunchTask := {
   * Building tasks
   */
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
-
-//resolvers += "jitpack" at "https://jitpack.io"
 
 val neo4j_version = "3.1.1"
 
@@ -155,8 +152,9 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
   settings(devDeploySettings: _*).
   settings(
     name := "mintsearch-neo4j-plugin",
+    resolvers += "jitpack" at "https://jitpack.io/",
     libraryDependencies ++= Seq(
-      "com.github.yasserg" % "jforests" % "v0.5" % "compile" from "https://github.com/yasserg/jforests/releases/download/v0.5/jforests-0.5.jar",
+      "com.github.yasserg" % "jforests" % "v0.5",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
       "org.terrier" % "terrier-core" % "4.2",
