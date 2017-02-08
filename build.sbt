@@ -133,14 +133,15 @@ devServerRelaunchTask := {
 
 resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases/"
 
+//resolvers += "jitpack" at "https://jitpack.io"
+
 val neo4j_version = "3.1.1"
 
 lazy val mintsearch = (project in file(".")).
   aggregate(neo4j_plugin).
   settings(inThisBuild(List(
       organization := "cdrc.ac.uk",
-      scalaVersion := "2.11.8",
-      crossScalaVersions := Seq()
+      scalaVersion := "2.11.8"
     )),
     packagedArtifacts := Map.empty,
     publish := {},
@@ -155,9 +156,11 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
   settings(
     name := "mintsearch-neo4j-plugin",
     libraryDependencies ++= Seq(
-      "org.neo4j" % "neo4j" % neo4j_version,
+      "com.github.yasserg" % "jforests" % "v0.5" % "compile" from "https://github.com/yasserg/jforests/releases/download/v0.5/jforests-0.5.jar",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
+      "org.terrier" % "terrier-core" % "4.2",
+      "org.neo4j" % "neo4j" % neo4j_version,
       "org.neo4j.test" % "neo4j-harness" % neo4j_version,
       "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
       "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
