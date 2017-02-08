@@ -3,6 +3,10 @@
   */
 package uk.ac.cdrc
 
+import java.io.{File, IOException}
+
+import org.apache.commons.io.FileUtils
+
 import scala.math.max
 
 package object mintsearch {
@@ -70,4 +74,22 @@ package object mintsearch {
   implicit def asWightedLabelSetWrapper[L](wls: WeightedLabelSet[L]): WeightedLabelSetWrapper[L] =
     new WeightedLabelSetWrapper(wls)
 
+  val defaultTempDir = new File(System.getProperty("java.io.tmpdir"))
+  class TempDir(prefix: String = "mintsearch-", suffix: String = ".tmp.d", dir: File = defaultTempDir) extends AutoCloseable {
+    private val temp = File.createTempFile(prefix, suffix, dir)
+    temp.delete()
+    if (temp.mkdirs())
+      temp
+    else
+      throw new IOException("Cannot create temp dir")
+
+    def value: File = temp
+
+    override def close(): Unit = {
+      FileUtils.deleteDirectory(temp)
+    }
+  }
+  object TempDir {
+    def apply() = new TempDir()
+  }
 }

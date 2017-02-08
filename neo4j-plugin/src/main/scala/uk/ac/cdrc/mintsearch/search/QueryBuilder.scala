@@ -3,9 +3,8 @@
   */
 package uk.ac.cdrc.mintsearch.search
 
-import java.io.{File, IOException, PrintWriter, StringWriter}
+import java.io.{File, PrintWriter, StringWriter}
 
-import org.apache.commons.io.FileUtils
 import org.neo4j.cypher.export.{CypherResultSubGraph, SubGraphExporter}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -15,13 +14,13 @@ import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 trait QueryBuilder
 
 trait GraphQuery extends AutoCloseable {
-  import QueryBuilder._
-  val qdbStore: File = mkTempDir()
+  private val qdbDir = TempDir()
+  val qdbStore: File = qdbDir.value
   val qdb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabase(qdbStore)
   override def close(): Unit = {
     qdb.shutdown()
     qdb.isAvailable(5000)
-    FileUtils.deleteDirectory(qdbStore)
+    qdbDir.close()
   }
 }
 
@@ -58,13 +57,4 @@ trait DependentQueryBuilder extends SimpleQueryBuilder {
 
 object QueryBuilder {
 
-  val defaultTempDir = new File(System.getProperty("java.io.tmpdir"))
-  def mkTempDir(prefix: String = "mintsearch-", suffix: String = ".tmp.d", dir: File = defaultTempDir): File = {
-    val temp = File.createTempFile(prefix, suffix, dir)
-    temp.delete()
-    if (temp.mkdirs())
-      temp
-    else
-      throw new IOException("Cannot create temp dir")
-  }
 }
