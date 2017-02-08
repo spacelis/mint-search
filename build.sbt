@@ -30,8 +30,6 @@ val deployTask = TaskKey[Unit]("deploy", "Copies assembly jar to remote location
 
 lazy val devDeploySettings = Seq(
   deployTask := {
-    val is = (ivyScala in Compile).value
-    val mkModRef = mkModuleRef(is)
 
     val (msID, msJar) = packagedArtifact.in(Compile, packageBin).value
     val remote = "dev_server/plugins"
@@ -39,7 +37,7 @@ lazy val devDeploySettings = Seq(
     for ((m, f) <- neo4jDeployJars.value :+ (msID.name, msJar))
     {
       println(s"Copy $m -> $remote")
-      Seq("cp", f.getAbsolutePath, remote) !
+      Seq("cp", f.getAbsolutePath, remote).!
     }
   },
   neo4jDeployJars := {
@@ -106,25 +104,25 @@ val devServerRelaunchTask = TaskKey[Unit]("devRelaunch", "Re-start the dev serve
 val devServerLogsTask = TaskKey[Unit]("devLogs", "Re-start the dev server within a docker container")
 
 devServerStartTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
+  Seq("bash", "-c", "cd dev_server && docker-compose up -d").!
 }
 
 
 devServerRestartTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose restart") !
+  Seq("bash", "-c", "cd dev_server && docker-compose restart").!
 }
 
 
 devServerLogsTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose logs --tail=100") !
+  Seq("bash", "-c", "cd dev_server && docker-compose logs --tail=100").!
 }
 
 devServerRelaunchTask := {
-  Seq("bash", "-c", "cd dev_server && docker-compose stop") !
+  Seq("bash", "-c", "cd dev_server && docker-compose stop").!
 
-  Seq("bash", "-c", "cd dev_server && sudo rm -rf data/databases/graph.db") !
+  Seq("bash", "-c", "cd dev_server && sudo rm -rf data/databases/graph.db").!
 
-  Seq("bash", "-c", "cd dev_server && docker-compose up -d") !
+  Seq("bash", "-c", "cd dev_server && docker-compose up -d").!
 
 }
 
