@@ -4,8 +4,10 @@ import java.util.stream.{Stream => JStream}
 
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Mode, Name, Procedure}
+import uk.ac.cdrc.mintsearch.ServiceStub
 import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
-import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
+import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
@@ -14,29 +16,31 @@ import scala.compat.java8.StreamConverters._
 import scala.util.control.NonFatal
 
 /**
-  * This stub is to avoid the non-static/final fields in Neo4J procedure definition.
+  * @inheritdoc
+  * This stub defines the Terrier indexing/searching infrastructure for the procedures.
   */
-object ServiceStub {
+object ServiceStubUponTerrierIndex extends ServiceStub {
 
-  private var graphSearcher: NeighbourBasedSearcher with SimpleQueryBuilder = _
-
-  private var indexWriter: LegacyNeighbourBaseIndexWriter = _
-
-  def getSearcher(gdb: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder = {
+  /**
+    * @inheritdoc
+    * @param gdb a graph database service
+    * @return a searcher instance
+    */
+  override def getSearcher(gdb: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder = {
     if (graphSearcher == null)
       graphSearcher = new NeighbourBasedSearcher
-          with LegacyNeighbourBaseIndexReader
-          with GraphDBContext
-          with ExponentialPropagation
-          with PropertyLabelMaker
-          with NeighbourhoodByRadius
-          with NeighbourAwareContext
-          with NeighbourAggregatedAnalyzer
-          with NESSSimilarity
-          with SimpleNodeRanking
-          with SimpleGraphRanking
-          with SubGraphEnumeratorContext
-          with SimpleQueryBuilder {
+        with TerrierIndexReader
+        with GraphDBContext
+        with ExponentialPropagation
+        with PropertyLabelMaker
+        with NeighbourhoodByRadius
+        with NeighbourAwareContext
+        with NeighbourAggregatedAnalyzer
+        with NESSSimilarity
+        with SimpleNodeRanking
+        with SimpleGraphRanking
+        with SubGraphEnumeratorContext
+        with SimpleQueryBuilder {
 
         override val radius: Int = 2
         override val propagationFactor: Double = 0.5
@@ -48,14 +52,19 @@ object ServiceStub {
     graphSearcher
   }
 
-  def getIndexWriter(gdb: GraphDatabaseService): LegacyNeighbourBaseIndexWriter = {
+  /**
+    * @inheritdoc
+    * @param gdb a graph database service
+    * @return a index writer instance
+    */
+  override def getIndexWriter(gdb: GraphDatabaseService): BaseIndexWriter = {
     if (indexWriter == null)
-      indexWriter = new LegacyNeighbourBaseIndexWriter
-          with GraphDBContext
-          with ExponentialPropagation
-          with PropertyLabelMaker
-          with NeighbourhoodByRadius
-          with NeighbourAwareContext {
+      indexWriter = new TerrierIndexWriter
+        with GraphDBContext
+        with ExponentialPropagation
+        with PropertyLabelMaker
+        with NeighbourhoodByRadius
+        with NeighbourAwareContext {
 
         override val radius: Int = 2
         override val propagationFactor: Double = 0.5
@@ -71,17 +80,17 @@ object ServiceStub {
 /**
   * This class implements the NEighborhood based Similarity Search
   */
-class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
+class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
   /**
     * Search via neighbour based method
     * @param query A cypher statement for creating a graph to search with
     * @return the nodes found by the query
     */
-  @Procedure(name="mint.nagg_search", mode=Mode.WRITE)
+  @Procedure(name="mint.naggt_search", mode=Mode.WRITE)
   def search(@Name("query") query: String): JStream[GraphResult] = {
     try {
-      val searcher = ServiceStub.getSearcher(db)
+      val searcher = ServiceStubUponTerrierIndex.getSearcher(db)
       WithResource(searcher.fromCypherCreate(query)){ q =>
         (for {
           g <- searcher.search(q).graphSnippets
@@ -97,10 +106,10 @@ class NeighbourAggregatedGraphSearch extends Neo4JProcedure {
   /**
     * Create a Neighbour based index for all nodes
     */
-  @Procedure(name="mint.nagg_index", mode=Mode.SCHEMA)
+  @Procedure(name="mint.naggt_index", mode=Mode.SCHEMA)
   def index(): Unit = {
     try {
-      ServiceStub.getIndexWriter(db).index()
+      ServiceStubUponTerrierIndex.getIndexWriter(db).index()
     } catch {
       case NonFatal(ex) =>
         log.error("Index Failed!", ex)
