@@ -94,7 +94,7 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
 
     storeWeightedLabels(node, labelWeights)
 
-    val terms: Set[String] = labelWeights.keys map labelEncode
+    val terms: Set[String] = labelWeights.keys.toSet map labelEncode
 
     val termString: String = terms mkString " "
 
@@ -161,7 +161,7 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
     tx.success()
   }
 
-  override def index(n: Node): Unit = throw NotImplementedException
+  override def index(n: Node): Unit = throw new NotImplementedException()
 
   override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =
     n.setProperty(labelStorePropKey, JSONfy(wls))
