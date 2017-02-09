@@ -29,8 +29,8 @@ trait TerrierIndex extends BaseIndexManager{
   val prefix: String = "mintsearch-terrier"
   private val pathDir = TempDir()
   val path: File = pathDir.value
-  //Make sure simple term pipeline is used
-  ApplicationSetup.setProperty("termpipelines", "")
+
+  ApplicationSetup.setProperty("termpipelines", "") //Make sure simple term pipeline is used
 
   def indexExists: Boolean = Index.existsIndex(path.getAbsolutePath, prefix)
 }
@@ -41,10 +41,20 @@ trait TerrierIndex extends BaseIndexManager{
 trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
   self: LabelMaker =>
 
+  /**
+    * Different weighting model can be used for getting nodes.
+    * @see org.terrier.matching.models
+    */
   val weightingModel: String = "BM25"
 
   lazy val indexDB: Index = Index.createIndex(path.getAbsolutePath, prefix)
 
+  /**
+    * Make a Terrier query out of the labelSet
+    * @param labelSet a query label set
+    * @param index a Terrier index
+    * @return a MatchingQueryTerms as the input to a Terrier index matcher
+    */
   def encodeQuery(labelSet: Set[L], index: Index): MatchingQueryTerms = {
     val query = new MultiTermQuery()
     for {
@@ -60,6 +70,11 @@ trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
   }
 
 
+  /**
+    * Search the Terrier index base for node documents per query
+    * @param labelSet the query label set
+    * @return a set of nodes matching to the query
+    */
   override def getNodesByLabels(labelSet: Set[L]): IndexedSeq[Node] = {
     val mqt = encodeQuery(labelSet, indexDB)
     val indexMatcher = new Full(indexDB)
@@ -69,6 +84,11 @@ trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
     } yield db.getNodeById(nodeId.toLong)
   }
 
+  /**
+    * @inheritdoc
+    * @param n a node
+    * @return a weighted label set from the node
+    */
   override def retrieveWeightedLabels(n: Node): WeightedLabelSet[L] =
     deJSONfy(n.getProperty(labelStorePropKey).toString)
 }
@@ -92,11 +112,10 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
 
     val labelWeights: WeightedLabelSet[L] = node.collectNeighbourhoodLabels
 
-    storeWeightedLabels(node, labelWeights)
+    storeWeightedLabels(node, labelWeights) // Save the composed node doc to the node property
 
     val terms: Set[String] = labelWeights.keys.toSet map labelEncode
 
-    val termString: String = terms mkString " "
 
     private val termIterator = terms.toIterator
 
@@ -112,6 +131,9 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
     override def endOfDocument(): Boolean = ! termIterator.hasNext
 
     override def getReader: Reader = new Reader {
+
+      private final val termString: String = terms mkString " "
+
       override def close(): Unit = {}
 
       override def read(cbuf: Array[Char], off: Int, len: Int): Int = {
@@ -125,7 +147,7 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
 
     override def getAllProperties: util.Map[String, String] = properties.asJava
 
-    override def getFields: util.Set[String] = Set("neighbourhood").asJava
+    override def getFields: util.Set[String] = Set[String]().asJava
   }
 
   /**
@@ -147,8 +169,15 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
     override def close(): Unit = {}
   }
 
+  /**
+    * Compose a collection array to cater Terrier's indexers
+    * @return an array of collections
+    */
   def getCollections: Array[Collection] = Seq(new NodeDocumentCollection).toArray
 
+  /**
+    * Index all the nodes in Neo4J database via Terrier's BasicIndexer
+    */
   override def index(): Unit = WithResource(db.beginTx()){tx =>
     if (indexExists)
       throw new RuntimeException(
@@ -161,8 +190,17 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
     tx.success()
   }
 
+  /**
+    * This is not in use in Terrier indexing infrastructure
+    * @param n a node
+    */
   override def index(n: Node): Unit = throw new NotImplementedException()
 
+  /**
+    * @inheritdoc
+    * @param n a node
+    * @param wls the node's weighted label set
+    */
   override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =
     n.setProperty(labelStorePropKey, JSONfy(wls))
 
