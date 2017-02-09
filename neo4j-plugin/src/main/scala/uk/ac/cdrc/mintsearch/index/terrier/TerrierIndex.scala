@@ -204,5 +204,6 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
   override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =
     n.setProperty(labelStorePropKey, JSONfy(wls))
 
+  override def awaitForIndexReady(): Unit = {}
 }
 

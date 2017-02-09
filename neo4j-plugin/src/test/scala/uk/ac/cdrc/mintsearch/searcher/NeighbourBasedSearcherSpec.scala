@@ -4,69 +4,13 @@
 
 package uk.ac.cdrc.mintsearch.searcher
 
-import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
-import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
-import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius, SubGraphEnumeratorContext}
-import uk.ac.cdrc.mintsearch.index.{LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
-import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
-import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
-import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
+import uk.ac.cdrc.mintsearch.neo4j.WithResource
 
-class NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
+trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
 
-  case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
-    val driver: Driver = GraphDatabase.driver(
-      neo4jServer.boltURI(),
-      Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
-    )
-    val indexWriter = new LegacyNeighbourBaseIndexWriter
-        with ExponentialPropagation
-        with PropertyLabelMaker
-        with NeighbourhoodByRadius
-        with NeighbourAwareContext {
-
-      override val radius: Int = 2
-      override val propagationFactor: Double = 0.5
-
-      override val labelStorePropKey: String = s"__nagg_$radius"
-      override val db: GraphDatabaseService = neo4jServer.graph()
-      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-    }
-
-    val graphSearcher = new NeighbourBasedSearcher
-        with LegacyNeighbourBaseIndexReader
-        with GraphDBContext
-        with ExponentialPropagation
-        with PropertyLabelMaker
-        with NeighbourhoodByRadius
-        with NeighbourAwareContext
-        with NeighbourAggregatedAnalyzer
-        with NESSSimilarity
-        with SimpleNodeRanking
-        with SimpleGraphRanking
-        with SubGraphEnumeratorContext
-        with SimpleQueryBuilder {
-
-      override val radius: Int = 2
-      override val propagationFactor: Double = 0.5
-
-      override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
-      override val labelStorePropKey: String = s"__nagg_$radius"
-      override val db: GraphDatabaseService = neo4jServer.graph()
-    }
-    override def close(): Unit = {
-      neo4jServer.close()
-    }
-  }
-
-  override def withFixture(test: OneArgTest): Outcome = {
-    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
-    WithResource(FixtureParam(builder.newServer())) { f =>
-      withFixture(test.toNoArgTest(f))
-    }
-  }
+  override type FixtureParam <: ServiceStubForTest
 
   "NeighbourhoodRanking" should {
     "find the only sub graph" in { f =>
@@ -264,6 +208,32 @@ class NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
           }
         }
       }
+    }
+  }
+
+}
+
+class LegacySearcherSpec extends NeighbourBasedSearcherSpec {
+
+  case class FixtureParam(neo4jServer: ServerControls) extends ServiceStubLegacyNeo4J
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
+    }
+  }
+
+}
+
+class TerrierSearcherSpec extends NeighbourBasedSearcherSpec {
+
+  case class FixtureParam(neo4jServer: ServerControls) extends ServiceStubTerrier
+
+  override def withFixture(test: OneArgTest): Outcome = {
+    val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
+    WithResource(FixtureParam(builder.newServer())) { f =>
+      withFixture(test.toNoArgTest(f))
     }
   }
 

@@ -18,7 +18,6 @@ import scala.collection.JavaConverters._
 trait Neo4JBaseIndexManager extends BaseIndexManager {
   self: LabelTypeContext =>
   lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
-  def awaitForIndexReady(): Unit = db.schema().awaitIndexesOnline(5, SECONDS)
 }
 
 /**
@@ -62,5 +61,6 @@ trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndex
   override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =
     n.setProperty(labelStorePropKey, JSONfy(wls))
 
+  override def awaitForIndexReady(): Unit = db.schema().awaitIndexesOnline(5, SECONDS)
 }
 

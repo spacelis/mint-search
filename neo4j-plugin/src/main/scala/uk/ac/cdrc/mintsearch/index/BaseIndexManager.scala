@@ -31,6 +31,7 @@ trait BaseIndexWriter extends BaseIndexManager {
   def index(): Unit
   def index(n: Node): Unit
   def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit
+  def awaitForIndexReady(): Unit
 }
 
 
