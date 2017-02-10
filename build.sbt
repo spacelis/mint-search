@@ -144,7 +144,7 @@ lazy val mintsearch = (project in file(".")).
     publish := {},
     publishLocal := {},
     name := "mintsearch",
-    version := "0.1-SNAPSHOT"
+    version := "1.0"
   )
 
 
