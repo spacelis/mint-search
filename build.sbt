@@ -157,7 +157,7 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "com.github.yasserg" % "jforests" % "v0.5",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
-      "org.terrier" % "terrier-core" % "4.2",
+      "org.terrier" % "terrier-core" % "4.2" exclude ("org.apache.tika", "tika-parsers" ),
       "org.neo4j" % "neo4j" % neo4j_version,
       "org.neo4j.test" % "neo4j-harness" % neo4j_version,
       "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
