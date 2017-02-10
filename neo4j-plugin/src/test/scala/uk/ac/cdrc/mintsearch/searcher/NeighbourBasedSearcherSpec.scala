@@ -4,9 +4,11 @@
 
 package uk.ac.cdrc.mintsearch.searcher
 
+import org.apache.commons.io.FileUtils
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
+
 
 trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
 
@@ -28,9 +30,7 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
           WithResource(indexWriter.db.beginTx()) { tx =>
             // query the neighbours
-            indexWriter.index(indexWriter.db.getNodeById(nodeA))
-            indexWriter.index(indexWriter.db.getNodeById(nodeB))
-            indexWriter.index(indexWriter.db.getNodeById(nodeC))
+            indexWriter.index()
             indexWriter.awaitForIndexReady()
             WithResource(graphSearcher.fromCypherCreate(
               """CREATE
@@ -39,6 +39,8 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
                 | (a)-[:Friend]->(b)
               """.stripMargin
             )) { q =>
+//              val lex = graphSearcher.asInstanceOf[TerrierIndexReader].indexDB.getLexicon
+//              println(lex.getLexiconEntry(0).getKey)
               val top = graphSearcher.search(q).graphSnippets.head
               top.nodeIds.toSet should be(Set(nodeA, nodeB, nodeC))
               tx.success()
@@ -67,9 +69,7 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
           WithResource(indexWriter.db.beginTx()) { tx =>
             // query the neighbours
-            indexWriter.index(indexWriter.db.getNodeById(nodeA))
-            indexWriter.index(indexWriter.db.getNodeById(nodeB))
-            indexWriter.index(indexWriter.db.getNodeById(nodeC))
+            indexWriter.index()
             indexWriter.awaitForIndexReady()
             WithResource(graphSearcher.fromCypherCreate(
               """CREATE
@@ -106,12 +106,7 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC, nodeX, nodeY, nodeZ) = for (i <- 0 until 6) yield res.get(i).asLong
           WithResource(indexWriter.db.beginTx()) { tx =>
             // query the neighbours
-            indexWriter.index(indexWriter.db.getNodeById(nodeA))
-            indexWriter.index(indexWriter.db.getNodeById(nodeB))
-            indexWriter.index(indexWriter.db.getNodeById(nodeC))
-            indexWriter.index(indexWriter.db.getNodeById(nodeX))
-            indexWriter.index(indexWriter.db.getNodeById(nodeY))
-            indexWriter.index(indexWriter.db.getNodeById(nodeZ))
+            indexWriter.index()
             indexWriter.awaitForIndexReady()
             WithResource(graphSearcher.fromCypherCreate(
               """CREATE
@@ -233,6 +228,7 @@ class TerrierSearcherSpec extends NeighbourBasedSearcherSpec {
   override def withFixture(test: OneArgTest): Outcome = {
     val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
     WithResource(FixtureParam(builder.newServer())) { f =>
+      f.graphSearcher.path.listFiles().foreach(FileUtils.forceDelete(_))
       withFixture(test.toNoArgTest(f))
     }
   }

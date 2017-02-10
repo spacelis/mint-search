@@ -27,12 +27,17 @@ import scala.collection.JavaConverters._
 trait TerrierIndex extends BaseIndexManager{
   self: LabelTypeContext =>
   val prefix: String = "mintsearch-terrier"
-  private val pathDir = TempDir()
-  val path: File = pathDir.value
-
-  ApplicationSetup.setProperty("termpipelines", "") //Make sure simple term pipeline is used
+  val path: File = TerrierIndex.pathDir.value
 
   def indexExists: Boolean = Index.existsIndex(path.getAbsolutePath, prefix)
+}
+
+object TerrierIndex {
+  // Make sure every runtime there is only one path for Terrier index
+  val pathDir = TempDir()
+  ApplicationSetup.setProperty("termpipelines", "") // Make sure simple term pipeline is used
+  ApplicationSetup.setProperty("indexer.meta.forward.keys", "node-id,label-number") //Forward these properties to meta index builder
+  ApplicationSetup.setProperty("indexer.meta.forward.keylens", "20,20")
 }
 
 /**
@@ -59,13 +64,14 @@ trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
     val query = new MultiTermQuery()
     for {
       l <- labelSet
-      term = s"$labelStorePropKey:${labelEncodeQuery(l)}"
+      term = s"${labelEncode(l).toLowerCase}"
     } query.add(new SingleTermQuery(term))
     val request = new Request()
     request.setIndex(index)
     request.setQuery(query)
     val ret = new MatchingQueryTerms("1", request)
     ret.setDefaultTermWeightingModel(WeightingModelFactory.newInstance(weightingModel, index))
+    query.obtainQueryTerms(ret)
     ret
   }
 
@@ -79,8 +85,10 @@ trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
     val mqt = encodeQuery(labelSet, indexDB)
     val indexMatcher = new Full(indexDB)
     val rs = indexMatcher.`match`("1", mqt) // backquotes to escape keyword match
+    val meta = indexDB.getMetaIndex
     for {
-      nodeId <- rs.getMetaItems("node-id")
+      docId <- rs.getDocids.toIndexedSeq
+      nodeId = meta.getItem("node-id", docId)
     } yield db.getNodeById(nodeId.toLong)
   }
 
@@ -114,7 +122,9 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
 
     storeWeightedLabels(node, labelWeights) // Save the composed node doc to the node property
 
-    val terms: Set[String] = labelWeights.keys.toSet map labelEncode
+    val terms: Set[String] = for {
+      lw: L <- labelWeights.keys.toSet
+    } yield labelEncode(lw).toLowerCase
 
 
     private val termIterator = terms.toIterator
