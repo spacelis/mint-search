@@ -152,6 +152,7 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
   settings(devDeploySettings: _*).
   settings(
     name := "mintsearch-neo4j-plugin",
+    version := "1.0",
     resolvers += "jitpack" at "https://jitpack.io/",
     libraryDependencies ++= Seq(
       "com.github.yasserg" % "jforests" % "v0.5",
