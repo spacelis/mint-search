@@ -1,5 +1,18 @@
 import scala.annotation.tailrec
 
+val neo4j_version = "3.1.1"
+
+val neo4jDependency = {
+  Seq(
+    "org.neo4j" % "neo4j" % neo4j_version,
+    "org.neo4j.test" % "neo4j-harness" % neo4j_version,
+    "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
+    "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
+    "org.neo4j" % "neo4j-kernel" % neo4j_version % "test",
+    "org.neo4j" % "neo4j-graph-algo" % neo4j_version % "test"
+  )
+}
+
 /**
   * The following are auxiliary functions for building files
   */
@@ -33,8 +46,7 @@ lazy val devDeploySettings = Seq(
 
     val (msID, msJar) = packagedArtifact.in(Compile, packageBin).value
     val remote = "dev_server/plugins"
-
-    for ((m, f) <- neo4jDeployJars.value :+ (msID.name, msJar))
+for ((m, f) <- neo4jDeployJars.value :+ (msID.name, msJar))
     {
       println(s"Copy $m -> $remote")
       Seq("cp", f.getAbsolutePath, remote).!
@@ -54,7 +66,6 @@ lazy val devDeploySettings = Seq(
 
     val toDeploy = for {
       exDep <- (libraryDependencies in Compile).value.toSet
-      if ! exDep.organization.startsWith("org.neo4j")
       if (exDep.configurations match {case Some(_) => false; case _ => true})
     } yield mkModRef(exDep)
 
@@ -64,8 +75,15 @@ lazy val devDeploySettings = Seq(
       .mapValues(_.toSeq.map(_._2).sorted.reverse.head).toSeq
       .map(v => s"${v._1}${v._2}")
 
+    val toExclude: Set[String] = expandDependencies(neo4jDependency.map(mkModRef).toSet, graph)
+      .map(s => s.splitAt(s lastIndexOf ":"))
+      .groupBy(_._1)
+      .mapValues(_.toSeq.map(_._2).sorted.reverse.head).toSeq
+      .map(v => s"${v._1}").toSet
+
     for {
       m <- toDeployEx
+      if ! toExclude.contains(m.splitAt(m lastIndexOf ":")._1)
       f <- coll(m).toSet[File]
     } yield (m, f)
   },
@@ -132,7 +150,6 @@ devServerRelaunchTask := {
   */
 
 
-val neo4j_version = "3.1.1"
 
 lazy val mintsearch = (project in file(".")).
   aggregate(neo4j_plugin).
@@ -148,6 +165,7 @@ lazy val mintsearch = (project in file(".")).
   )
 
 
+
 lazy val neo4j_plugin = (project in file("neo4j-plugin")).
   settings(devDeploySettings: _*).
   settings(
@@ -158,17 +176,15 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
       "com.github.yasserg" % "jforests" % "v0.5",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
-      "org.terrier" % "terrier-core" % "4.2" exclude ("org.apache.tika", "tika-parsers" ),
-      "org.neo4j" % "neo4j" % neo4j_version,
-      "org.neo4j.test" % "neo4j-harness" % neo4j_version,
-      "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
-      "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
-      "org.neo4j" % "neo4j-kernel" % neo4j_version % "test",
-      "org.neo4j" % "neo4j-graph-algo" % neo4j_version % "test",
+      "org.terrier" % "terrier-core" % "4.2"
+        exclude ("org.apache.tika", "tika-parsers" )
+        exclude("org.apache.ant", "ant")
+        exclude("org.eclipse.jdt", "core")
+        exclude("org.apache.lucene", "lucene-snowball"),
       "com.sun.jersey" % "jersey-core" % "1.19" % "test",
       "com.sun.jersey" % "jersey-server" % "1.19" % "test",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-    ),
+    ) ++ neo4jDependency,
     parallelExecution in Test := false
   )
 
