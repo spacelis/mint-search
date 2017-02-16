@@ -8,7 +8,6 @@ import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWrit
 import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
-import uk.ac.cdrc.mintsearch.search.{NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 /**
   * Provide a service stub for tests
