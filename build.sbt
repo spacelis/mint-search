@@ -5,10 +5,10 @@ val neo4j_version = "3.1.1"
 val neo4jDependency = {
   Seq(
     "org.neo4j" % "neo4j" % neo4j_version,
+    "org.neo4j" % "neo4j-kernel" % neo4j_version,
     "org.neo4j.test" % "neo4j-harness" % neo4j_version,
     "org.neo4j.driver" % "neo4j-java-driver" % "1.1.1" % "test",
     "org.neo4j" % "neo4j-io" % neo4j_version % "test" classifier "tests",
-    "org.neo4j" % "neo4j-kernel" % neo4j_version % "test",
     "org.neo4j" % "neo4j-graph-algo" % neo4j_version % "test"
   )
 }
@@ -183,7 +183,8 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
         exclude("org.apache.lucene", "lucene-snowball"),
       "com.sun.jersey" % "jersey-core" % "1.19" % "test",
       "com.sun.jersey" % "jersey-server" % "1.19" % "test",
-      "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
     ) ++ neo4jDependency,
     parallelExecution in Test := false
   )
