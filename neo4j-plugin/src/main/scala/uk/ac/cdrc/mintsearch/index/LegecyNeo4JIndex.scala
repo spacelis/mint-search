@@ -10,6 +10,8 @@ import uk.ac.cdrc.mintsearch.index.Neo4JIndexTypes._
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * The following traits are implementation of NodeIndex via Neo4J's index interface
@@ -45,10 +47,21 @@ trait LegacyNeighbourBaseIndexReader extends BaseIndexReader with Neo4JBaseIndex
   */
 trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndexManager {
   self: NeighbourAwareContext with LabelMaker =>
-  override def index(): Unit = WithResource(db.beginTx()){tx =>
-    for (n <- db.getAllNodes.asScala) index(n)
-    tx.success()
+  override def index(): Unit = {
+    implicit val ec = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+    val executed = for (nodeSet <- db.getAllNodes.asScala.toIterator.grouped(1000))
+      yield Future {
+        WithResource(db.beginTx()) { tx =>
+          for (n <- nodeSet) index(n)
+          tx.success()
+        }
+        nodeSet.size
+      }
+    val succeeded = (for {
+      f <- executed
+    } yield Await.result(f, Duration.Inf)).sum
   }
+
   override def index(n: Node): Unit = {
     val labelWeights = n.collectNeighbourhoodLabels
 
