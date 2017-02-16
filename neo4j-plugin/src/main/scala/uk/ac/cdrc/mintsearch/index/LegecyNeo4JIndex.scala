@@ -1,5 +1,6 @@
 package uk.ac.cdrc.mintsearch.index
 
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.SECONDS
 
 import org.neo4j.graphdb.Node
