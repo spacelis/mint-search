@@ -6,7 +6,6 @@ package uk.ac.cdrc.mintsearch.search
 import org.neo4j.graphdb.Label
 import org.scalatest.{Matchers, WordSpec}
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
-import uk.ac.cdrc.mintsearch.search.SimpleQueryBuilder
 
 import scala.collection.JavaConverters._
 
