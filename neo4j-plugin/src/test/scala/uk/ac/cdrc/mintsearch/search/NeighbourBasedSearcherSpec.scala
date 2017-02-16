@@ -2,7 +2,7 @@
   * Testing NeighbourAwareNode
   */
 
-package uk.ac.cdrc.mintsearch.searcher
+package uk.ac.cdrc.mintsearch.search
 
 import org.apache.commons.io.FileUtils
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}

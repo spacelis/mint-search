@@ -1,4 +1,4 @@
-package uk.ac.cdrc.mintsearch.searcher
+package uk.ac.cdrc.mintsearch.search
 
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService

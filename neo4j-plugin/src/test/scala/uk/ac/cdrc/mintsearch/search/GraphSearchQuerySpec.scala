@@ -1,7 +1,7 @@
 /**
   * Test GraphSearchQuery
   */
-package uk.ac.cdrc.mintsearch.searcher
+package uk.ac.cdrc.mintsearch.search
 
 import org.neo4j.graphdb.Label
 import org.scalatest.{Matchers, WordSpec}
