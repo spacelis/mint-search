@@ -50,6 +50,39 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
       }
     }
 
+    "be tolerant to spaces in the property values" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob Luke'}),
+              | (c: Person {name: 'Carl'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c)
+              | RETURN id(a), id(b), id(c)""".stripMargin
+          ).single()
+          val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
+          WithResource(indexWriter.db.beginTx()) { tx =>
+            // query the neighbours
+            indexWriter.index()
+            indexWriter.awaitForIndexReady()
+            WithResource(graphSearcher.fromCypherCreate(
+              """CREATE
+                | (a: Person {name: 'Alice'}),
+                | (b: Person {name: 'Bob Luke'}),
+                | (a)-[:Friend]->(b)
+              """.stripMargin
+            )) { q =>
+              val top = graphSearcher.search(q).graphSnippets.head
+              top.nodeIds.toSet should be(Set(nodeA, nodeB, nodeC))
+              tx.success()
+            }
+          }
+        }
+      }
+    }
+
     "find a single sub graph" in { f =>
       import f._
       WithResource(neo4jServer) { _ =>

@@ -20,8 +20,9 @@ trait LabelTypeContext {
   */
 trait KeyValueLabelTypeStub extends LabelTypeContext {
   override type L = (String, String)
-  override def labelEncode(label: L): String = s"${label._1}:${label._2}"
-  override def labelEncodeQuery(label: L): String = s"${label._1}\\:${label._2}"
+  private val WS = "\\s".r
+  override def labelEncode(label: L): String = s"${label._1}:${WS replaceAllIn(label._2, "_")}"
+  override def labelEncodeQuery(label: L): String = s"${label._1}\\:${WS replaceAllIn(label._2, "_")}"
 }
 
 trait KeyValueLabelType extends KeyValueLabelTypeStub with ScalaJackJsonfier
