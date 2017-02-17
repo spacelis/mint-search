@@ -88,7 +88,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
         WithResource(driver.session()) { _ =>
           WithResource(indexReader.db.beginTx()) { tx =>
             // query the neighbours
-            indexReader.indexDB.query("__nagg_2:name\\:carl").stream().iterator().asScala.toList should have length 3
+            indexReader.indexDB.query("__nagg_2:name\\:Carl").stream().iterator().asScala.toList should have length 3
             indexReader.indexDB.query("__nagg_2:name\\:Bob").stream().iterator().asScala.toList should have length 3
             tx.success()
           }
@@ -124,10 +124,10 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
         WithResource(driver.session()) { _ =>
           WithResource(indexReader.db.beginTx()) { tx =>
             // query the neighbours
-            indexReader.getNodesByLabels(Set(("name", "alice"))).toList should have length 3
+            indexReader.getNodesByLabels(Set(("name", "Alice"))).toList should have length 3
             indexReader.getNodesByLabels(Set(("name", "Bob"))).toList should have length 4
-            indexReader.getNodesByLabels(Set(("name", "carl"))).toList should have length 4
-            indexReader.getNodesByLabels(Set(("name", "david"))).toList should have length 3
+            indexReader.getNodesByLabels(Set(("name", "Carl"))).toList should have length 4
+            indexReader.getNodesByLabels(Set(("name", "David"))).toList should have length 3
             tx.success()
           }
         }
