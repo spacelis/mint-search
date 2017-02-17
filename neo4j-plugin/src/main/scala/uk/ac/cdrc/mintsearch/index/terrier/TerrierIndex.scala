@@ -3,6 +3,7 @@ package uk.ac.cdrc.mintsearch.index.terrier
 import java.io.{File, Reader}
 import java.util
 
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.NotImplementedException
 import org.neo4j.graphdb.Node
 import org.terrier.indexing.{Collection, Document}
@@ -206,6 +207,9 @@ trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
     */
   override def index(n: Node): Unit = throw new NotImplementedException()
 
+  override def reset_index() = {
+    FileUtils.iterateFiles(path, null, false).asScala.foreach(_.delete())
+  }
   /**
     * @inheritdoc
     * @param n a node

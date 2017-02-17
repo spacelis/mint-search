@@ -98,4 +98,18 @@ class NeighbourAggregatedGraphSearchL extends Neo4JProcedure {
         throw ex
     }
   }
+
+  /**
+    * Delete index
+    */
+  @Procedure(name="mint.nagg_reset_index", mode=Mode.SCHEMA)
+  def reset_index(): Unit = {
+    try {
+      ServiceStubUponNeo4JIndex.getIndexWriter(db).reset_index()
+    } catch {
+      case NonFatal(ex) =>
+        log.error("Deleting index Failed!", ex)
+        throw ex
+    }
+  }
 }

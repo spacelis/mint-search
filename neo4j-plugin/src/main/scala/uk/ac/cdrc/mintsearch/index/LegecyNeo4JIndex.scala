@@ -20,7 +20,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
   */
 trait Neo4JBaseIndexManager extends BaseIndexManager {
   self: LabelTypeContext =>
-  lazy val indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
+  def indexDB: Index[Node] = db.index().forNodes(indexName, FULL_TEXT.asJava)
 }
 
 /**
@@ -70,6 +70,10 @@ trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndex
     indexDB.remove(n) // Make sure the node will be replaced in the index
     indexDB.add(n, labelStorePropKey, labelWeights.keys map labelEncode mkString " ")
     storeWeightedLabels(n, labelWeights)
+  }
+
+  override def reset_index(): Unit = {
+    indexDB.delete()
   }
 
   override def storeWeightedLabels(n: Node, wls: WeightedLabelSet[L]): Unit =

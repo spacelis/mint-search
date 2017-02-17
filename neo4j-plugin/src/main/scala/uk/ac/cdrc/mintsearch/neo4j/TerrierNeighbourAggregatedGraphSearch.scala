@@ -100,4 +100,18 @@ class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
         throw ex
     }
   }
+
+  /**
+    * Delete the index
+    */
+  @Procedure(name="mint.naggt_reset_index", mode=Mode.SCHEMA)
+  def reset_index(): Unit = {
+    try {
+      ServiceStubUponTerrierIndex.getIndexWriter(db).reset_index()
+    } catch {
+      case NonFatal(ex) =>
+        log.error("Index Failed!", ex)
+        throw ex
+    }
+  }
 }
