@@ -261,8 +261,10 @@ class TerrierSearcherSpec extends NeighbourBasedSearcherSpec {
   override def withFixture(test: OneArgTest): Outcome = {
     val builder: TestServerBuilder = TestServerBuilders.newInProcessBuilder()
     WithResource(FixtureParam(builder.newServer())) { f =>
+      val r =withFixture(test.toNoArgTest(f))
+      f.graphSearcher.indexDB.close()
       f.graphSearcher.path.listFiles().foreach(FileUtils.forceDelete(_))
-      withFixture(test.toNoArgTest(f))
+      r
     }
   }
 
