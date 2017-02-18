@@ -27,6 +27,6 @@ case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
 }
 
 object GraphSnippet {
-  implicit def asCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
+  implicit def toCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
 }
 
