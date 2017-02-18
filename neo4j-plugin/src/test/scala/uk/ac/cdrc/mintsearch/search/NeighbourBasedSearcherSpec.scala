@@ -230,7 +230,7 @@ trait NeighbourBasedSearcherSpec extends fixture.WordSpec with Matchers {
               res should have length 2
               val resNodeSets = res.map(_.nodeIds.toSet)
               resNodeSets.head should be(Set(nodeA, nodeB, nodeC))
-              resNodeSets should contain(Set(nodeX, nodeY))
+              resNodeSets should contain(Set(nodeX))
             }
             tx.success()
           }
