@@ -5,7 +5,7 @@ import java.util.stream.{Stream => JStream}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Mode, Name, Procedure}
 import uk.ac.cdrc.mintsearch.ServiceStub
-import uk.ac.cdrc.mintsearch.graph.SubGraphEnumeratorContext
+import uk.ac.cdrc.mintsearch.graph.ConnComponentEnumContext
 import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter}
 import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{ConfR2expPropLIdx, NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
@@ -34,7 +34,7 @@ object ServiceStubUponNeo4JIndex extends ServiceStub {
           with NESSSimilarity
           with SimpleNodeRanking
           with SimpleGraphRanking
-          with SubGraphEnumeratorContext
+          with ConnComponentEnumContext
           with SimpleQueryBuilder {
 
         override val db: GraphDatabaseService = gdb

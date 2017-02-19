@@ -1,8 +1,8 @@
 package uk.ac.cdrc.mintsearch.ranking
 
+import uk.ac.cdrc.mintsearch.graph.GraphEmbedding
+import uk.ac.cdrc.mintsearch.index.LabelTypeContext
 import uk.ac.cdrc.mintsearch.{GraphDoc, NodeId}
-import uk.ac.cdrc.mintsearch.graph.GraphSnippet
-import uk.ac.cdrc.mintsearch.index.{LabelMaker, LabelTypeContext}
 
 /**
   * A component of ranking
@@ -12,8 +12,8 @@ trait GraphRanking {
   def rankGraphs(
     query: GraphDoc[L],
     nodeMatchingSet: IndexedSeq[NodeSearchResult],
-    graphSnippetList: IndexedSeq[GraphSnippet]
-  ): IndexedSeq[(GraphSnippet, Double)]
+    graphSnippetList: IndexedSeq[GraphEmbedding]
+  ): IndexedSeq[(GraphEmbedding, Double)]
 }
 
 trait SimpleGraphRanking extends GraphRanking {
@@ -29,8 +29,8 @@ trait SimpleGraphRanking extends GraphRanking {
   override def rankGraphs(
     graphDoc: GraphDoc[L],
     nodeMatchingResult: IndexedSeq[NodeSearchResult],
-    graphSnippetList: IndexedSeq[GraphSnippet]
-  ): IndexedSeq[(GraphSnippet, Double)] = {
+    graphSnippetList: IndexedSeq[GraphEmbedding]
+  ): IndexedSeq[(GraphEmbedding, Double)] = {
     val graphs = graphSnippetList.map(_.nodeIds.toSet)
     for {
       (gid, score) <- graphScoring(graphs, scoreMapping(nodeMatchingResult))

@@ -13,7 +13,7 @@ import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
 import scala.collection.JavaConverters._
 
-class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
+class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
 
@@ -27,7 +27,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
       with PropertyLabelMaker
       with NeighbourhoodByRadius
       with NeighbourAwareContext
-      with SubGraphEnumeratorContext {
+      with ConnComponentEnumContext {
 
       override val radius: Int = 2
       override val propagationFactor: Double = 0.5
@@ -201,7 +201,7 @@ class SubGraphEnumeratorSpec extends fixture.WordSpec with Matchers {
               r <- p.relationships().asScala
             } yield r).toList
 
-            val sgs = GraphSnippet(nodes, relationships)
+            val sgs = GraphEmbedding(nodes, relationships, List.empty)
             val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
             sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
           }

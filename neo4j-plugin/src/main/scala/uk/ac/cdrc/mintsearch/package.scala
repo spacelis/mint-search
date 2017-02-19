@@ -21,7 +21,19 @@ package object mintsearch {
   /**
     * A mapping from a node (by its ID) to a list of nodes (IDs)
     */
-  type NodeMatchingSet = Map[NodeId, Seq[NodeId]]
+  case class NodeMatchingSet(map: Map[NodeId, Seq[NodeId]]) {
+    lazy val rev: Map[NodeId, NodeId] = (for {
+      (n, ms) <- map.toSeq
+      i <- ms
+    } yield i -> n).toMap
+    lazy val matched: Set[NodeId] = map.values.flatten.toSet
+    def removeKeys(ks: Seq[NodeId]): NodeMatchingSet = NodeMatchingSet(map.filterKeys(k => ! (ks contains k)))
+    def removeValues(vs: Set[NodeId]): NodeMatchingSet = NodeMatchingSet(for {
+      (k, nodes) <- map
+      left = nodes.toSet -- vs
+      if left.nonEmpty
+    } yield k -> left.toSeq)
+  }
 
   /**
     * A mapping of a candidate node to the query node
@@ -47,16 +59,6 @@ package object mintsearch {
     }
 
   }
-
-  /**
-    * Reverse the matching set to node mappings from candidate to query
-    * @param matchingSet a mapping of query node to a list of candidate nodes
-    * @return a map of candidate nodes to the original node
-    */
-  def reverseMapping(matchingSet: NodeMatchingSet): Map[NodeId, NodeId] = (for {
-    (n, matchings) <- matchingSet.toSeq
-    i <- matchings
-  } yield i -> n).toMap
 
   /**
     * Sum up a list of weight distributions

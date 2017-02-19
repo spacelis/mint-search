@@ -11,11 +11,7 @@ import uk.ac.cdrc.mintsearch.NodeId
   * @param nodes the nodes in a sub graph
   * @param relationships the relationships in a sub graph
   */
-case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
-  def addNode(n: Node) = GraphSnippet(n :: nodes, relationships)
-  def addNodes(ns: Iterable[Node]) = GraphSnippet(ns.toList ++ nodes, relationships)
-  def addRelationship(r: Relationship) = GraphSnippet(nodes, r :: relationships)
-  def addRelationships(rs: Iterable[Relationship]) = GraphSnippet(nodes, rs.toList ++ relationships)
+case class GraphEmbedding(nodes: List[Node], relationships: List[Relationship], keyNodes: List[NodeId]) {
   lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
 
   def toNeo4JSubGraph: CypherResultSubGraph = {
@@ -26,7 +22,7 @@ case class GraphSnippet(nodes: List[Node], relationships: List[Relationship]) {
   }
 }
 
-object GraphSnippet {
-  implicit def toCypherResultSubGraph(subGraphStore: GraphSnippet): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
+object GraphEmbedding {
+  implicit def toCypherResultSubGraph(subGraphStore: GraphEmbedding): CypherResultSubGraph = subGraphStore.toNeo4JSubGraph
 }
 
