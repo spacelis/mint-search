@@ -70,7 +70,12 @@ trait NeighbourAwareContext {
       * @return a `WeightedLabelSet` derived from the neighbourhood
       */
     def collectNeighbourhoodLabels: WeightedLabelSet[L] = {
-      val label_weight_parts = for { path <- neighbours } yield propagate(path)
+      val label_weight_parts = for { path <- neighbourhood } yield {
+        if (path.endNode().getId != node.getId)
+          propagate(path)
+        else
+          propagate(path, 100d)
+      }
 
       sum(label_weight_parts) // Aggregate the label weights.
     }
