@@ -12,8 +12,6 @@ import uk.ac.cdrc.mintsearch.NodeMatchingSet
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
-import scala.collection.JavaConverters._
-
 class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
@@ -70,11 +68,13 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           WithResource(context.db.beginTx()) { _ =>
             val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
             embeddings should have length 3
-            val firstNodes = embeddings.head.nodes map { _.getId }
+            val firstNodes = embeddings.head.nodes map {
+              _.getId
+            }
             firstNodes should contain(nodeA)
             firstNodes should contain(nodeB)
             firstNodes should contain(nodeC)
-            (embeddings flatMap (_.keyNodes)).toSet should be (Set(nodeA, nodeB, nodeC))
+            (embeddings flatMap (_.keyNodes)).toSet should be(Set(nodeA, nodeB, nodeC))
           }
         }
       }
@@ -98,149 +98,157 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           WithResource(context.db.beginTx()) { _ =>
             val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
             embeddings should have length 3
-            val firstNodes = embeddings.head.nodes map { _.getId }
+            val firstNodes = embeddings.head.nodes map {
+              _.getId
+            }
             firstNodes should contain(nodeA)
-            firstNodes should not contain(nodeB)
-            firstNodes should not contain(nodeC)
-            (embeddings flatMap (_.keyNodes)).toSet should be (Set(nodeA, nodeB, nodeC))
+            firstNodes should not contain nodeB
+            firstNodes should not contain nodeC
+            (embeddings flatMap (_.keyNodes)).toSet should be(Set(nodeA, nodeB, nodeC))
           }
         }
       }
     }
 
-//    "find a large connect component" in { f =>
-//      import f._
-//      WithResource(neo4jServer) { _ =>
-//        WithResource(driver.session()) { session =>
-//          // create a simple graph with two order of relationship friend
-//          val res = session.run(
-//            """CREATE
-//              | (a: Person {name:'Alice'}),
-//              | (b: Person {name: 'Bob'}),
-//              | (c: Person {name: 'Carl'}),
-//              | (d: Person {name: 'David'}),
-//              | (e: Person {name: 'Elizabeth'}),
-//              | (f: Person {name: 'Frank'}),
-//              | (g: Person {name: 'Grace'}),
-//              | (h: Person {name: 'Henry'}),
-//              | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
-//              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
-//          ).single()
-//          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
-//
-//          WithResource(context.db.beginTx()) { _ =>
-//            val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.toSet).nodes map {
-//              _.getId
-//            }
-//            expanded should contain(nodes(6))
-//            expanded should contain(nodes(7))
-//          }
-//        }
-//      }
-//    }
-//
-//    "find another large connect component" in { f =>
-//      import f._
-//      WithResource(neo4jServer) { _ =>
-//        WithResource(driver.session()) { session =>
-//          // create a simple graph with two order of relationship friend
-//          val res = session.run(
-//            """CREATE
-//              | (a: Person {name:'Alice'}),
-//              | (b: Person {name: 'Bob'}),
-//              | (c: Person {name: 'Carl'}),
-//              | (d: Person {name: 'David'}),
-//              | (e: Person {name: 'Elizabeth'}),
-//              | (f: Person {name: 'Frank'}),
-//              | (g: Person {name: 'Grace'}),
-//              | (h: Person {name: 'Henry'}),
-//              | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
-//              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
-//          ).single()
-//          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
-//
-//          WithResource(context.db.beginTx()) { _ =>
-//            val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet).nodes map {
-//              _.getId
-//            }
-//            expanded should not contain nodes(6)
-//            expanded should not contain nodes(7)
-//          }
-//        }
-//      }
-//    }
-//
-//    "assemble connect components" in { f =>
-//      import f._
-//      WithResource(neo4jServer) { _ =>
-//        WithResource(driver.session()) { session =>
-//          // create a simple graph with two order of relationship friend
-//          val res = session.run(
-//            """CREATE
-//              | (a: Person {name:'Alice'}),
-//              | (b: Person {name: 'Bob'}),
-//              | (c: Person {name: 'Carl'}),
-//              | (d: Person {name: 'David'}),
-//              | (e: Person {name: 'Elizabeth'}),
-//              | (f: Person {name: 'Frank'}),
-//              | (g: Person {name: 'Grace'}),
-//              | (h: Person {name: 'Henry'}),
-//              | (a)-[:Friend]->(b)-[:Friend]->(c),
-//              | (d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
-//              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
-//          ).single()
-//          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
-//
-//          WithResource(context.db.beginTx()) { _ =>
-//            val graphs = context.composeGraphs(nodes.toSet).toVector
-//            graphs(0).nodeIds should contain oneOf (nodes(0), nodes(3))
-//            graphs(0).nodeIds should contain oneOf (nodes(1), nodes(4))
-//            graphs(0).nodeIds should contain oneOf (nodes(2), nodes(5))
-//          }
-//        }
-//      }
-//    }
-  }
-//
-//  "GraphSnippet" should {
-//    "return a CypherResultSubGraph representing the sub graph store" in { f =>
-//      import f._
-//      WithResource(neo4jServer) { _ =>
-//        WithResource(driver.session()) { session =>
-//
-//          // create a simple graph with two order of relationship friend
-//          val nodeId: Long = session.run(
-//            """CREATE
-//              | (a: Person {name:'Alice'}),
-//              | (b: Person {name: 'Bob'}),
-//              | (c: Person {name: 'Carl'}),
-//              | (a)-[:Friend]->(b)-[:Friend]->(c)
-//              | RETURN id(a)""".stripMargin
-//          )
-//            .single()
-//            .get(0).asLong()
-//
-//          // create a wrapper function
-//          WithResource(context.db.beginTx()) { _ =>
-//            import context.nodeWrapper
-//            // query the neighbours
-//            val nodes = (for {
-//              p <- context.db.getNodeById(nodeId).neighbours
-//              n <- p.nodes().asScala
-//            } yield n).toList
-//
-//            val relationships = (for {
-//              p <- context.db.getNodeById(nodeId).neighbours
-//              r <- p.relationships().asScala
-//            } yield r).toList
-//
-//            val sgs = GraphEmbedding(nodes, relationships)
-//            val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
-//            sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
-//          }
-//        }
-//      }
-//    }
-//  }
-}
+    "find only a part of large connect component" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          // create a simple graph with two order of relationship friend
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'}),
+              | (d: Person {name: 'David'}),
+              | (e: Person {name: 'Elizabeth'}),
+              | (f: Person {name: 'Frank'}),
+              | (g: Person {name: 'Grace'}),
+              | (h: Person {name: 'Henry'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
+          ).single()
+          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
+          WithResource(context.db.beginTx()) { _ =>
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(7), nodes(4))))).toList
+            expanded should have length 3
+
+            val first = expanded.head
+            first.nodeIds should contain theSameElementsAs nodes.slice(0, 3)
+            first.keyNodes should be(List(nodes(0)))
+
+            val second = expanded(1)
+            second.nodeIds should contain theSameElementsAs nodes.slice(5, nodes.length)
+            second.keyNodes should be(List(nodes(7)))
+
+            val third = expanded(2)
+            third.nodeIds should contain theSameElementsAs nodes.slice(2, 7)
+            third.keyNodes should be(List(nodes(4)))
+          }
+        }
+      }
+    }
+
+    "not expand via nodes in the same rank list" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          // create a simple graph with two order of relationship friend
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'}),
+              | (d: Person {name: 'David'}),
+              | (e: Person {name: 'Elizabeth'}),
+              | (f: Person {name: 'Frank'}),
+              | (g: Person {name: 'Grace'}),
+              | (h: Person {name: 'Henry'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
+          ).single()
+          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+          WithResource(context.db.beginTx()) { _ =>
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(1))))).toList
+            expanded should have length 2
+
+            val first = expanded.head
+            first.nodeIds should contain theSameElementsAs nodes.slice(0, 3)
+            first.keyNodes should be(List(nodes(0)))
+
+            val second = expanded(1)
+            second.nodeIds should contain theSameElementsAs nodes.slice(0, 4)
+            second.keyNodes should be(List(nodes(1)))
+          }
+        }
+      }
+    }
+
+    "find all key nodes" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          // create a simple graph with two order of relationship friend
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'}),
+              | (d: Person {name: 'David'}),
+              | (e: Person {name: 'Elizabeth'}),
+              | (f: Person {name: 'Frank'}),
+              | (g: Person {name: 'Grace'}),
+              | (h: Person {name: 'Henry'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c),
+              | (d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
+          ).single()
+          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+          WithResource(context.db.beginTx()) { _ =>
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0)), -2L -> Seq(nodes(2))))).toList
+            expanded should have length 1
+            val expandedNodes = expanded.head.nodeIds.toSet
+            expandedNodes should contain theSameElementsAs Set(nodes(0), nodes(1), nodes(2))
+            expanded.head.keyNodes should contain theSameElementsAs Set(nodes(0), nodes(2))
+          }
+        }
+      }
+    }
+
+    "not cross connected component boundary" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          // create a simple graph with two order of relationship friend
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'}),
+              | (d: Person {name: 'David'}),
+              | (e: Person {name: 'Elizabeth'}),
+              | (f: Person {name: 'Frank'}),
+              | (g: Person {name: 'Grace'}),
+              | (h: Person {name: 'Henry'}),
+              | (a)-[:Friend]->(b)-[:Friend]->(c),
+              | (d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
+              | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
+          ).single()
+          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
+
+          WithResource(context.db.beginTx()) { _ =>
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0)), -2L -> Seq(nodes(3))))).toList
+            expanded should have length 2
+            val expandedNodes = expanded map {
+              _.nodeIds.toSet
+            }
+            expandedNodes should contain theSameElementsAs Set(Set(nodes(0), nodes(1), nodes(2)), Set(nodes(3), nodes(4), nodes(5)))
+          }
+        }
+      }
+    }
+  }
+}
