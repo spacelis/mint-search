@@ -33,6 +33,7 @@ package object mintsearch {
       left = nodes.toSet -- vs
       if left.nonEmpty
     } yield k -> left.toSeq)
+    def nonEmpty: Boolean = map.nonEmpty
   }
 
   /**

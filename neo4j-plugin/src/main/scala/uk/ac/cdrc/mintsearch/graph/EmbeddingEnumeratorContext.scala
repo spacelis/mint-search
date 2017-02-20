@@ -108,10 +108,10 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * @return a stream of embeddings
     */
   final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
-    lazy val embeddings: Stream[Stream[GraphEmbedding]] =
-      initialEmbeddings(nodeMatchingSet) #:: (nms map composeEmbeddings)
-    lazy val nms: Stream[NodeMatchingSet] =
-      embeddings.scanLeft(nodeMatchingSet){_ removeValues _.flatMap(_.nodeIds).toSet}
+    lazy val nms: Stream[NodeMatchingSet] = nodeMatchingSet #::
+      (nms zip embeddings.takeWhile(_.nonEmpty)
+        map {x => x._1 removeValues x._2.flatMap(_.nodeIds).toSet})
+    lazy val embeddings: Stream[Stream[GraphEmbedding]] = nms map initialEmbeddings
     embeddings.flatten
   }
 
@@ -171,6 +171,6 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
       p <- textile.values.toList
       r <- p.relationships().asScala
     } yield r
-    GraphEmbedding(nodes.distinct, relationships.distinct, keyNodes)
+    GraphEmbedding((nodes ++ (keyNodes map {x => db.getNodeById(x)})).distinct, relationships.distinct, keyNodes)
   }
 }

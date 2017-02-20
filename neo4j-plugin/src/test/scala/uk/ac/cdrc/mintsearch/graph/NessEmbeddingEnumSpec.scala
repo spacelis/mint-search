@@ -68,10 +68,41 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC))))
-              .head.nodes map { _.getId }
-            expanded should contain(nodeB)
-            expanded should contain(nodeC)
+            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
+            embeddings should have length 3
+            val firstNodes = embeddings.head.nodes map { _.getId }
+            firstNodes should contain(nodeA)
+            firstNodes should contain(nodeB)
+            firstNodes should contain(nodeC)
+            (embeddings flatMap (_.keyNodes)).toSet should be (Set(nodeA, nodeB, nodeC))
+          }
+        }
+      }
+    }
+
+    "find three connect component" in { f =>
+      import f._
+      WithResource(neo4jServer) { _ =>
+        WithResource(driver.session()) { session =>
+          // create a simple graph with two order of relationship friend
+          val res = session.run(
+            """CREATE
+              | (a: Person {name:'Alice'}),
+              | (b: Person {name: 'Bob'}),
+              | (c: Person {name: 'Carl'})
+              | RETURN id(a), id(b), id(c)""".stripMargin
+          )
+            .single()
+          val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
+
+          WithResource(context.db.beginTx()) { _ =>
+            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
+            embeddings should have length 3
+            val firstNodes = embeddings.head.nodes map { _.getId }
+            firstNodes should contain(nodeA)
+            firstNodes should not contain(nodeB)
+            firstNodes should not contain(nodeC)
+            (embeddings flatMap (_.keyNodes)).toSet should be (Set(nodeA, nodeB, nodeC))
           }
         }
       }
