@@ -30,7 +30,7 @@ trait SimpleNodeRanking extends NodeRanking {
       n <- nodes
       s = similarity(retrieveWeightedLabels(n), query)
     } yield n -> s
-    val (rankedNodes, rankScore) = nodesWithScore.filter(_._2 > selfLabelWeight).sortBy(_._2).unzip
+    val (rankedNodes, rankScore) = nodesWithScore.filter(_._2 >= selfLabelWeight).sortBy(_._2).unzip
     NodeSearchResult(queryNode, query, rankedNodes, rankScore)
   }
 
