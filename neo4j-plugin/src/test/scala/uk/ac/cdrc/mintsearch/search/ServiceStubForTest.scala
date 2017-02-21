@@ -3,7 +3,7 @@ package uk.ac.cdrc.mintsearch.search
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.ServerControls
-import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
+import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
 import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
@@ -55,7 +55,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
     with NESSSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
-    with ConnComponentEnumContext
+    with NessEmbeddingEnumContext
     with SimpleQueryBuilder {
 
     override val radius: Int = 2
@@ -94,7 +94,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
     with NESSSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
-    with ConnComponentEnumContext
+    with NessEmbeddingEnumContext
     with SimpleQueryBuilder {
 
     override val radius: Int = 2

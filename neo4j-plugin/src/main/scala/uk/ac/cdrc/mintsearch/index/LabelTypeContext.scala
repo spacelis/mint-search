@@ -8,6 +8,8 @@ import uk.ac.cdrc.mintsearch.WeightedLabelSet
   */
 trait LabelTypeContext {
   type L
+  val selfLabelWeight: Double = 100d // for distinguish labels from neighbours,
+                                     // as those labels will have far less weights.
   def labelEncode(label: L): String
   def labelEncodeQuery(label: L): String
   def JSONfy(wls: WeightedLabelSet[L]): String

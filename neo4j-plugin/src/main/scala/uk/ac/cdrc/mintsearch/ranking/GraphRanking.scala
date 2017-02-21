@@ -41,7 +41,7 @@ trait SimpleGraphRanking extends GraphRanking {
     (for {
       nms <- nodeMatchingResult
       (r, s) <- nms.ranked zip nms.scores
-    } yield r.getId -> s).toMap
+    } yield r.getId -> s).toMap.withDefaultValue(0.0d)
 
   def graphScoring(graphs: IndexedSeq[Set[NodeId]], nodeScores: Map[NodeId, Double]): IndexedSeq[(Int, Double)] = {
 

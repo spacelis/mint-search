@@ -18,6 +18,7 @@ import scala.collection.JavaConverters._
 trait NeighbourAwareContext {
   self: GraphDBContext with TraversalStrategy with PropagationStrategy with LabelTypeContext =>
 
+
   class NeighbourVisitor(val node: Node) {
 
     /**
@@ -70,12 +71,7 @@ trait NeighbourAwareContext {
       * @return a `WeightedLabelSet` derived from the neighbourhood
       */
     def collectNeighbourhoodLabels: WeightedLabelSet[L] = {
-      val label_weight_parts = for { path <- neighbourhood } yield {
-        if (path.endNode().getId != node.getId)
-          propagate(path)
-        else
-          propagate(path, 100d)
-      }
+      val label_weight_parts = for { path <- neighbourhood } yield propagate(path)
 
       sum(label_weight_parts) // Aggregate the label weights.
     }

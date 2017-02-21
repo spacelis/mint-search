@@ -5,7 +5,7 @@ import java.util.stream.{Stream => JStream}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Mode, Name, Procedure}
 import uk.ac.cdrc.mintsearch.ServiceStub
-import uk.ac.cdrc.mintsearch.graph.ConnComponentEnumContext
+import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext}
 import uk.ac.cdrc.mintsearch.index.BaseIndexWriter
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
 import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
@@ -36,7 +36,7 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
         with NESSSimilarity
         with SimpleNodeRanking
         with SimpleGraphRanking
-        with ConnComponentEnumContext
+        with NessEmbeddingEnumContext
         with SimpleQueryBuilder {
 
         override val db: GraphDatabaseService = gdb
