@@ -7,7 +7,7 @@ import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
 import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
-import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleGraphRanking, SimpleNodeRanking}
 
 /**
   * Provide a service stub for tests
@@ -52,7 +52,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
     with NeighbourhoodByRadius
     with NeighbourAwareContext
     with NeighbourAggregatedAnalyzer
-    with NESSSimilarity
+    with NessNodeSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
     with NessEmbeddingEnumContext
@@ -91,7 +91,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
     with NeighbourhoodByRadius
     with NeighbourAwareContext
     with NeighbourAggregatedAnalyzer
-    with NESSSimilarity
+    with NessNodeSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
     with NessEmbeddingEnumContext

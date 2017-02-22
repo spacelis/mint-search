@@ -8,7 +8,7 @@ import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
   */
 class NodeSimilaritySpec extends WordSpec with Matchers {
   "NESSSimilarity" should {
-    "work generally" in new NESSSimilarity with PropertyLabelMaker {
+    "work generally" in new NessNodeSimilarity with PropertyLabelMaker {
       override val labelStorePropKey: String = ""
       val a = Map(("name", "bob") -> 3d, ("name", "alice") -> 4d)
       val b = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
@@ -18,7 +18,7 @@ class NodeSimilaritySpec extends WordSpec with Matchers {
       similarity(b, b) should be(8d)
     }
 
-    "handle empty" in new NESSSimilarity with PropertyLabelMaker {
+    "handle empty" in new NessNodeSimilarity with PropertyLabelMaker {
       override val labelStorePropKey: String = ""
       val a: Map[(String, String), Double] = Map()
       val b: Map[(String, String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)
@@ -28,7 +28,7 @@ class NodeSimilaritySpec extends WordSpec with Matchers {
       similarity(b, b) should be(8d)
     }
 
-    "handle no intersection" in new NESSSimilarity with PropertyLabelMaker {
+    "handle no intersection" in new NessNodeSimilarity with PropertyLabelMaker {
       override val labelStorePropKey: String = ""
       val a: Map[(String, String), Double] = Map(("name", "carl") -> 3d, ("name", "david") -> 2d)
       val b: Map[(String, String), Double] = Map(("name", "bob") -> 4d, ("name", "alice") -> 4d)

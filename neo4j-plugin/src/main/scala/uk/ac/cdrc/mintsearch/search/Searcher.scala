@@ -3,6 +3,7 @@
   */
 package uk.ac.cdrc.mintsearch.search
 
+import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j._
@@ -25,6 +26,8 @@ trait NeighbourBasedSearcher extends GraphSearcher {
     GraphSearchResult(gsq, graphSnippets, scores)
   }
 
+  private val logger = LoggerFactory.getLogger(classOf[NeighbourBasedSearcher])
+
   def graphDocSearch(query: GraphDoc[L]): IndexedSeq[(GraphEmbedding, Double)] = {
 
     val resultSets = for {
@@ -35,7 +38,9 @@ trait NeighbourBasedSearcher extends GraphSearcher {
       rs <- resultSets
     } yield rs.queryNode -> (rs.ranked map (_.getId))).toMap)
 
-    rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).toIndexedSeq)
+    val res = rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).toIndexedSeq)
+    logger.debug(s"graphs=${res}")
+    res
   }
 
 }

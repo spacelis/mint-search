@@ -7,7 +7,7 @@ import org.neo4j.procedure.{Mode, Name, Procedure}
 import uk.ac.cdrc.mintsearch.ServiceStub
 import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext}
 import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter}
-import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleGraphRanking, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleGraphRanking, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{ConfR2expPropLIdx, NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 import scala.collection.JavaConverters._
@@ -31,7 +31,7 @@ object ServiceStubUponNeo4JIndex extends ServiceStub {
           with ConfR2expPropLIdx
           with GraphDBContext
           with NeighbourAggregatedAnalyzer
-          with NESSSimilarity
+          with NessNodeSimilarity
           with SimpleNodeRanking
           with SimpleGraphRanking
           with NessEmbeddingEnumContext

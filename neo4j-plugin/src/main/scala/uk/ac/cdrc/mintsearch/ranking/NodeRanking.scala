@@ -36,3 +36,16 @@ trait SimpleNodeRanking extends NodeRanking {
 
 }
 
+trait NessNodeRanking extends NodeRanking {
+  self: BaseIndexReader with NessNodeSimilarity with LabelTypeContext =>
+  override def searchNodes(queryNode: NodeId, query: WeightedLabelSet[L]): NodeSearchResult = {
+    val nodes = getNodesByLabels(query.keySet)
+    val nodesWithScore = for {
+      n <- nodes
+      s = distance(retrieveWeightedLabels(n), query)
+    } yield n -> s
+    val (rankedNodes, rankScore) = nodesWithScore.sortBy(_._2).unzip
+    NodeSearchResult(queryNode, query, rankedNodes, rankScore)
+  }
+
+}

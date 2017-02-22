@@ -9,9 +9,10 @@ import uk.ac.cdrc.mintsearch.index.LabelMaker
 trait NodeSimilarity {
   self: LabelMaker =>
   def similarity(wls: WeightedLabelSet[L], other: WeightedLabelSet[L]): Double
+  def distance(wls: WeightedLabelSet[L], other: WeightedLabelSet[L]): Double
 }
 
-trait NESSSimilarity extends NodeSimilarity {
+trait NessNodeSimilarity extends NodeSimilarity {
   self: LabelMaker =>
   import uk.ac.cdrc.mintsearch.asWightedLabelSetWrapper
 
@@ -19,4 +20,7 @@ trait NESSSimilarity extends NodeSimilarity {
     other.values.sum - (other ~~ wls).values.sum
   }
 
+  override def distance(wls: WeightedLabelSet[L], other: WeightedLabelSet[L]): Double = {
+    (other ~~ wls).values.sum
+  }
 }

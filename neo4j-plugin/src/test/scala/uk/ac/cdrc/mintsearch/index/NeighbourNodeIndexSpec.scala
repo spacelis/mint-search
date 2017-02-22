@@ -10,7 +10,7 @@ import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.{ExponentialPropagation, NeighbourAwareContext, NeighbourhoodByRadius}
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
-import uk.ac.cdrc.mintsearch.ranking.{NESSSimilarity, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleNodeRanking}
 
 import scala.collection.JavaConverters._
 
@@ -39,7 +39,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
         with PropertyLabelMaker
         with NeighbourhoodByRadius
         with NeighbourAwareContext
-        with NESSSimilarity
+        with NessNodeSimilarity
         with SimpleNodeRanking {
 
       override val radius: Int = 2
