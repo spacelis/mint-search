@@ -66,7 +66,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
+            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC).map((_, 1d))))).toList
             embeddings should have length 3
             val firstNodes = embeddings.head.nodes map {
               _.getId
@@ -96,7 +96,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC)))).toList
+            val embeddings = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> IndexedSeq(nodeA, nodeB, nodeC).map((_, 1d))))).toList
             embeddings should have length 3
             val firstNodes = embeddings.head.nodes map {
               _.getId
@@ -131,7 +131,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(7), nodes(4))))).toList
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(7), nodes(4)).map((_, 1d))))).toList
             expanded should have length 3
 
             val first = expanded.head
@@ -171,7 +171,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(1))))).toList
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0), nodes(1)).map((_, 1d))))).toList
             expanded should have length 2
 
             val first = expanded.head
@@ -208,7 +208,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0)), -2L -> Seq(nodes(2))))).toList
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0) -> 1d), -2L -> Seq(nodes(2) -> 1d)))).toList
             expanded should have length 1
             val expandedNodes = expanded.head.nodeIds.toSet
             expandedNodes should contain theSameElementsAs Set(nodes(0), nodes(1), nodes(2))
@@ -240,7 +240,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0)), -2L -> Seq(nodes(3))))).toList
+            val expanded = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> Seq(nodes(0) -> 1d), -2L -> Seq(nodes(3) -> 1d)))).toList
             expanded should have length 2
             val expandedNodes = expanded map {
               _.nodeIds.toSet

@@ -17,7 +17,7 @@ trait GraphRanking {
 }
 
 trait SimpleGraphRanking extends GraphRanking {
-  self: NodeSearchResultContext with LabelTypeContext =>
+  self: NodeSearchResultContext with NodeSimilarity with LabelTypeContext =>
 
   /**
     * Ranking the the retrieved graph by summing matching scores of nodes inside each of them
@@ -30,20 +30,20 @@ trait SimpleGraphRanking extends GraphRanking {
     graphDoc: GraphDoc[L],
     nodeMatchingResult: IndexedSeq[NodeSearchResult],
     graphSnippetList: IndexedSeq[GraphEmbedding]
-  ): IndexedSeq[(GraphEmbedding, Double)] = {
+  ): IndexedSeq[(GraphEmbedding, Score)] = {
     val graphs = graphSnippetList.map(_.nodeIds.toSet)
     for {
       (gid, score) <- graphScoring(graphs, scoreMapping(nodeMatchingResult))
     } yield graphSnippetList(gid) -> score
   }
 
-  def scoreMapping(nodeMatchingResult: IndexedSeq[NodeSearchResult]): Map[NodeId, Double] =
+  def scoreMapping(nodeMatchingResult: IndexedSeq[NodeSearchResult]): Map[NodeId, Score] =
     (for {
       nms <- nodeMatchingResult
       (r, s) <- nms.ranked zip nms.scores
     } yield r.getId -> s).toMap.withDefaultValue(0.0d)
 
-  def graphScoring(graphs: IndexedSeq[Set[NodeId]], nodeScores: Map[NodeId, Double]): IndexedSeq[(Int, Double)] = {
+  def graphScoring(graphs: IndexedSeq[Set[NodeId]], nodeScores: Map[NodeId, Score]): IndexedSeq[(Int, Score)] = {
 
     val scoreParts = for {
       (g, gid) <- graphs.zipWithIndex
@@ -54,7 +54,6 @@ trait SimpleGraphRanking extends GraphRanking {
       .mapValues(s => (s map { _._2 }).sum)
       .toIndexedSeq
       .sortBy(_._2)
-      .reverse
   }
 
 }

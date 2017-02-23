@@ -36,7 +36,7 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
         with NessNodeSimilarity
         with SimpleNodeRanking
         with SimpleGraphRanking
-        with NessEmbeddingEnumContext
+        with ConnComponentEnumContext
         with SimpleQueryBuilder {
 
         override val db: GraphDatabaseService = gdb

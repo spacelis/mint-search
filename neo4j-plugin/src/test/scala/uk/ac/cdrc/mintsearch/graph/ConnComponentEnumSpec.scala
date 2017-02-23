@@ -156,7 +156,7 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val graphs = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> nodes))).toVector
+            val graphs = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> nodes.map((_, 1d))))).toVector
             graphs(0).nodeIds should contain oneOf (nodes(0), nodes(3))
             graphs(0).nodeIds should contain oneOf (nodes(1), nodes(4))
             graphs(0).nodeIds should contain oneOf (nodes(2), nodes(5))

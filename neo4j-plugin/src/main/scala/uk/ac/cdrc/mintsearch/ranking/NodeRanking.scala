@@ -30,7 +30,7 @@ trait SimpleNodeRanking extends NodeRanking {
       n <- nodes
       s = similarity(retrieveWeightedLabels(n), query)
     } yield n -> s
-    val (rankedNodes, rankScore) = nodesWithScore.filter(_._2 >= selfLabelWeight).sortBy(_._2).unzip
+    val (rankedNodes, rankScore) = nodesWithScore.sortBy(_._2).unzip
     NodeSearchResult(queryNode, query, rankedNodes, rankScore)
   }
 
@@ -42,9 +42,9 @@ trait NessNodeRanking extends NodeRanking {
     val nodes = getNodesByLabels(query.keySet)
     val nodesWithScore = for {
       n <- nodes
-      s = distance(retrieveWeightedLabels(n), query)
+      s = similarity(retrieveWeightedLabels(n), query)
     } yield n -> s
-    val (rankedNodes, rankScore) = nodesWithScore.sortBy(_._2).unzip
+    val (rankedNodes, rankScore) = nodesWithScore.filter(_._2 >= selfLabelWeight).sortBy(_._2).unzip
     NodeSearchResult(queryNode, query, rankedNodes, rankScore)
   }
 

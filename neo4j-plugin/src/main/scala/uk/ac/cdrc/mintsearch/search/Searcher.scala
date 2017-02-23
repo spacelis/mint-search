@@ -14,21 +14,21 @@ case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphEmb
 
 trait GraphSearcher {
   self: QueryAnalyzer with LabelMaker with EmbeddingEnumeratorContext =>
-  def search(gsq: GraphQuery): GraphSearchResult
+  def search(gsq: GraphQuery, limit: Int = 3): GraphSearchResult
 }
 
 trait NeighbourBasedSearcher extends GraphSearcher {
   self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with GraphRanking with EmbeddingEnumeratorContext =>
 
-  override def search(gsq: GraphQuery): GraphSearchResult = {
+  override def search(gsq: GraphQuery, limit: Int = 3): GraphSearchResult = {
     val analyzedQuery = analyze(gsq)
-    val (graphSnippets, scores) = graphDocSearch(analyzedQuery).unzip
+    val (graphSnippets, scores) = graphDocSearch(analyzedQuery, limit).unzip
     GraphSearchResult(gsq, graphSnippets, scores)
   }
 
   private val logger = LoggerFactory.getLogger(classOf[NeighbourBasedSearcher])
 
-  def graphDocSearch(query: GraphDoc[L]): IndexedSeq[(GraphEmbedding, Double)] = {
+  def graphDocSearch(query: GraphDoc[L], limit: Int): IndexedSeq[(GraphEmbedding, Double)] = {
 
     val resultSets = for {
       (n, wls) <- query.toIndexedSeq
@@ -36,10 +36,10 @@ trait NeighbourBasedSearcher extends GraphSearcher {
 
     val nodeMatchingSet = NodeMatchingSet((for {
       rs <- resultSets
-    } yield rs.queryNode -> (rs.ranked map (_.getId))).toMap)
+    } yield rs.queryNode -> (rs.ranked zip rs.scores map (m => m._1.getId -> m._2))).toMap)
 
-    val res = rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).toIndexedSeq)
-    logger.debug(s"graphs=${res}")
+    val res = rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).take(limit).toIndexedSeq)
+    logger.debug(s"graphs=\n${res.map{case(x, y) => y -> x} mkString "\n"}")
     res
   }
 
