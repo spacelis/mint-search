@@ -3,7 +3,8 @@
   */
 package uk.ac.cdrc.mintsearch.graph
 
-import org.neo4j.graphdb.Path
+import org.neo4j.graphdb.{Node, Path}
+import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
@@ -31,56 +32,45 @@ trait ConnComponentEnumContext extends EmbeddingEnumeratorContext {
       ns <- nodeMatchingSet.map.values
       n <- ns
     } yield n).toSet
-    composeGraphs(nodes).toStream
+    composeEmbeddings(nodes)(nodeMatchingSet)
   }
-  /**
-    * Assemble graphs from dangled nodes
-    * @param dangled is a set of nodeIds
-    * @return a stream of sub graph stores from the dangled nodes
-    */
-  @tailrec
-  final def composeGraphs(dangled: Set[NodeId], acc: Seq[GraphEmbedding] = Seq.empty): Seq[GraphEmbedding] = {
-    dangled.toList match {
-      case x :: _ =>
-        val subGraph = expandingSubGraph(Set(x), dangled)
-        composeGraphs(dangled -- subGraph.nodeIds, acc :+ subGraph)
-      case Nil =>
-        acc
+
+  private val logger = LoggerFactory.getLogger(classOf[ConnComponentEnumContext])
+
+  def composeEmbeddings(nodeIds: Set[NodeId])(implicit nms: NodeMatchingSet): Stream[GraphEmbedding] = {
+    val nodes: Set[Node] = nodeIds map (x => db.getNodeById(x))
+    if (nodes.nonEmpty) {
+      logger.debug("composeEmbeddings")
+      lazy val leftNodes: Stream[Set[Node]] = nodes #:: (leftNodes zip component.takeWhile(_.nonEmpty) map {x => x._1 -- x._2.keySet})
+      lazy val component: Stream[Map[Node, Path]] = leftNodes.takeWhile(_.size > 1) map { nodes =>
+        logger.debug("$nodes")
+        val seed = nodes.take(1)
+        val rest = nodes -- seed
+        findComponent(seed, rest)
+      }
+      component map { x =>
+        val nodes = x.values.flatMap(_.nodes().asScala).toList
+        val relationships = x.values.flatMap(_.relationships().asScala).toList
+        val keyNodes = nodes.filter(nms.rev.keySet contains _.getId).map(_.getId)
+        GraphEmbedding(nodes, relationships, keyNodes)
+      }
+    } else {
+      Stream.empty
     }
   }
 
-  /**
-    * Expanding a seed set of nodes to its maximum size of sub graph within the graph store
-    * @param seedNodes is a set of nodes
-    * @param range is a set of nodes indicating the boundary of neighbour searching, only
-    *              nodes within the range will be considered in the returned sub graphs
-    * @return return the biggest sub graph expanding from the seed nodes within the range
-    */
-  def expandingSubGraph(seedNodes: Set[NodeId], range: Set[NodeId]): GraphEmbedding = {
-    val (nodeIds, path) = stepExpandingSubGraph(seedNodes, Map.empty, range).reduce((_, b) => b)
-    val nodes = for (n <- nodeIds) yield db.getNodeById(n)
-    val relationships = (for (p <- path.values; r <- p.relationships().asScala) yield r.getId) map db.getRelationshipById
-    GraphEmbedding(nodes.toList, relationships.toList, List.empty)
-  }
-
-  /**
-    * A method defining the intermedia step for expanding a sub graph from a seed set of nodes
-    * @param seedNodes is a set of nodes to start from
-    * @param seedPaths is a set of paths carried forward for later assembling
-    * @param range is the range for sub graph boundaries
-    * @return a series steps towards the maxim range of sub graphs
-    */
-  def stepExpandingSubGraph(seedNodes: Set[NodeId], seedPaths: Map[NodeId, Path], range: Set[NodeId]): Stream[(Set[NodeId], Map[NodeId, Path])] = {
-    val pathToNeighbours = (for {
-      nid <- seedNodes & range
-      p <- db.getNodeById(nid).NeighboursIn(range)
-    } yield p.endNode().getId -> p).toMap
-
-    if (pathToNeighbours.isEmpty)
-      (seedNodes, seedPaths) #:: Stream.empty
+  @tailrec
+  final def findComponent(toExpand: Set[Node], range: Set[Node], acc: Map[Node, Path]=Map.empty): Map[Node, Path] = {
+    val expanded: Map[Node, Path] = (for {
+      n <- toExpand
+      p <- n.neighbours
+    } yield p.endNode() -> p).toMap
+    val margin = (expanded.keySet -- acc.keySet) & range
+    if (margin.nonEmpty)
+      findComponent(margin, range, acc ++ expanded.filter(margin contains _._1))
     else
-      (seedNodes, seedPaths) #:: stepExpandingSubGraph(seedNodes ++ pathToNeighbours.keySet,
-        seedPaths ++ pathToNeighbours, range -- seedNodes)
+      acc
+
   }
 
 }

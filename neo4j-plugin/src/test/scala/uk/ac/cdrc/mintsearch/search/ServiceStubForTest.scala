@@ -55,7 +55,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
     with NessNodeSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
-    with NessEmbeddingEnumContext
+    with ConnComponentEnumContext
     with SimpleQueryBuilder {
 
     override val radius: Int = 2
@@ -94,7 +94,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
     with NessNodeSimilarity
     with SimpleNodeRanking
     with SimpleGraphRanking
-    with NessEmbeddingEnumContext
+    with ConnComponentEnumContext
     with SimpleQueryBuilder {
 
     override val radius: Int = 2

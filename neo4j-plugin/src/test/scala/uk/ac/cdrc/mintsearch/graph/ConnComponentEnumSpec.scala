@@ -8,6 +8,7 @@ import org.neo4j.driver.v1._
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
+import uk.ac.cdrc.mintsearch.NodeMatchingSet
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
@@ -64,10 +65,10 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
               | RETURN id(a), id(b), id(c)""".stripMargin
           )
             .single()
-          val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.expandingSubGraph(Set(nodeA), Set(nodeA, nodeB, nodeC)).nodes map { _.getId }
+            val Seq(nodeA, nodeB, nodeC) = for (i <- 0 to 2) yield context.db.getNodeById(res.get(i).asLong)
+            val expanded = context.findComponent(Set(nodeA), Set(nodeA, nodeB, nodeC)).keySet
             expanded should contain(nodeB)
             expanded should contain(nodeC)
           }
@@ -93,12 +94,10 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
               | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
               | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
           ).single()
-          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.toSet).nodes map {
-              _.getId
-            }
+            val nodes = for (i <- 0 to 7) yield context.db.getNodeById(res.get(i).asLong)
+            val expanded = context.findComponent(Set(nodes(0)), nodes.toSet).keySet
             expanded should contain(nodes(6))
             expanded should contain(nodes(7))
           }
@@ -124,12 +123,10 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
               | (a)-[:Friend]->(b)-[:Friend]->(c)-[:Friend]->(d)-[:Friend]->(e)-[:Friend]->(f)-[:Friend]->(g)-[:Friend]->(h)
               | RETURN id(a), id(b), id(c), id(d), id(e), id(f), id(g), id(h)""".stripMargin
           ).single()
-          val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val expanded = context.expandingSubGraph(Set(nodes(0)), nodes.take(4).toSet).nodes map {
-              _.getId
-            }
+            val nodes = for (i <- 0 to 7) yield context.db.getNodeById(res.get(i).asLong)
+            val expanded = context.findComponent(Set(nodes(0)), nodes.take(4).toSet).keySet
             expanded should not contain nodes(6)
             expanded should not contain nodes(7)
           }
@@ -159,7 +156,7 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
           val nodes = for (i <- 0 to 7) yield res.get(i).asLong
 
           WithResource(context.db.beginTx()) { _ =>
-            val graphs = context.composeGraphs(nodes.toSet).toVector
+            val graphs = context.composeEmbeddings(NodeMatchingSet(Map(-1L -> nodes))).toVector
             graphs(0).nodeIds should contain oneOf (nodes(0), nodes(3))
             graphs(0).nodeIds should contain oneOf (nodes(1), nodes(4))
             graphs(0).nodeIds should contain oneOf (nodes(2), nodes(5))
