@@ -11,6 +11,7 @@ import org.scalatest._
 import uk.ac.cdrc.mintsearch.NodeMatchingSet
 import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
+import uk.ac.cdrc.mintsearch.ranking.NessNodeSimilarity
 
 class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
 
@@ -26,6 +27,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
       with PropertyLabelMaker
       with NeighbourhoodByRadius
       with NeighbourAwareContext
+      with NessNodeSimilarity
       with NessEmbeddingEnumContext {
 
       override val radius: Int = 2

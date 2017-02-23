@@ -8,7 +8,7 @@ import uk.ac.cdrc.mintsearch.index.KeyValueLabelType
   */
 class GraphRankingSpec extends WordSpec with Matchers {
   "SimpleGraphRanking" should {
-    "generally work" in new SimpleGraphRanking with NodeSearchResultContext with KeyValueLabelType {
+    "generally work" in new SimpleGraphRanking with SimpleNodeSimilarity with NodeSearchResultContext with KeyValueLabelType {
       val graphScores: IndexedSeq[(Int, Double)] = graphScoring(
         IndexedSeq(Set(1, 2, 3), Set(4, 5)),
         Map(1l -> 0.5, 2l -> 0.5, 3l -> 0.1, 4l -> 0.2, 5l -> 1.0)
