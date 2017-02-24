@@ -57,15 +57,14 @@ object ServiceStubUponNeo4JIndex extends ServiceStub {
       }
     indexWriter
   }
+
+  val renderer = NodeOnlyAsciiRenderer(Seq("value"))
 }
 
 /**
   * This class implements the NEighborhood based Similarity Search
   */
 class NeighbourAggregatedGraphSearchL extends Neo4JProcedure {
-
-  val render = NodeOnlyAsciiRenderer(Seq("value"))
-  import render._
 
   /**
     * Search via neighbour based method
@@ -75,7 +74,9 @@ class NeighbourAggregatedGraphSearchL extends Neo4JProcedure {
   @Procedure(name="mint.nagg_search", mode=Mode.WRITE)
   def search(@Name("query") query: String): JStream[GraphResult] = {
     try {
-      val searcher = ServiceStubUponNeo4JIndex.getSearcher(db)
+      import ServiceStubUponNeo4JIndex._
+      import renderer._
+      val searcher = getSearcher(db)
       WithResource(searcher.fromCypherCreate(query)){ q =>
         val res = searcher.search(q)
         (for {

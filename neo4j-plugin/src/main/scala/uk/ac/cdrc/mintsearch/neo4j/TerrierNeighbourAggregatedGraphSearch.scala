@@ -59,6 +59,8 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
       }
     indexWriter
   }
+
+  val renderer = NodeOnlyAsciiRenderer(Seq("value"))
 }
 
 /**
@@ -66,8 +68,6 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
   */
 class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
-  val render = NodeOnlyAsciiRenderer(Seq("value"))
-  import render._
   /**
     * Search via neighbour based method
     * @param query A cypher statement for creating a graph to search with
@@ -76,7 +76,9 @@ class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
   @Procedure(name="mint.naggt_search", mode=Mode.WRITE)
   def search(@Name("query") query: String): JStream[GraphResult] = {
     try {
-      val searcher = ServiceStubUponTerrierIndex.getSearcher(db)
+      import ServiceStubUponTerrierIndex._
+      import renderer._
+      val searcher = getSearcher(db)
       WithResource(searcher.fromCypherCreate(query)){ q =>
         val res = searcher.search(q)
         (for {
