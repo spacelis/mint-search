@@ -5,7 +5,7 @@ import java.util.stream.{Stream => JStream}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Mode, Name, Procedure}
 import uk.ac.cdrc.mintsearch.ServiceStub
-import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext}
+import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext, NodeOnlyAsciiRenderer}
 import uk.ac.cdrc.mintsearch.index.BaseIndexWriter
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
 import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleGraphRanking, SimpleNodeRanking}
@@ -66,6 +66,8 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
   */
 class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
 
+  val render = NodeOnlyAsciiRenderer(Seq("value"))
+  import render._
   /**
     * Search via neighbour based method
     * @param query A cypher statement for creating a graph to search with
@@ -76,9 +78,13 @@ class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
     try {
       val searcher = ServiceStubUponTerrierIndex.getSearcher(db)
       WithResource(searcher.fromCypherCreate(query)){ q =>
+        val res = searcher.search(q)
         (for {
-          g <- searcher.search(q).graphSnippets
-        } yield new GraphResult(g.nodes.asJava, g.relationships.asJava)).seqStream
+          ((g, s), i) <- (res.graphSnippets zip res.scores).zipWithIndex
+        } yield {
+          log.debug(s"graphs[$i] = \n$s <= ${g.render}}")
+          new GraphResult(g.nodes.asJava, g.relationships.asJava)
+        }).seqStream
       }
     } catch {
       case NonFatal(ex) =>

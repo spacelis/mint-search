@@ -37,25 +37,27 @@ class NodeOnlyAsciiRenderSpec extends fixture.WordSpec with Matchers {
   "NodeOnlyAsciiGraph" should {
     "render node" in { f =>
       import f._
-      val r = NodeOnlyAsciiRender(Seq("value"))
+      val r = NodeOnlyAsciiRenderer(Seq("value"))
+      import r._
       WithResource(context.db.beginTx()){_ =>
         val n = context.db.createNode()
         n.setProperty("value", "Alice")
-        r.toAscii(n) should be ("(0: Alice)")
+        n.render should be ("(0: Alice)")
       }
     }
 
     "render embedding" in { f =>
       import f._
-      val r = NodeOnlyAsciiRender(Seq("value"))
+      val r = NodeOnlyAsciiRenderer(Seq("value"))
+      import r._
       WithResource(context.db.beginTx()){_ =>
         val n = context.db.createNode()
         val m = context.db.createNode()
         n.setProperty("value", "Alice")
         m.setProperty("value", "Bob")
-        val s = r.toAscii(GraphEmbedding(List(n, m), List.empty, List(n.getId)))
-        s should include (r.toAscii(n))
-        s should include (r.toAscii(m))
+        val s = GraphEmbedding(List(n, m), List.empty, List(n.getId)).render
+        s should include (n.render)
+        s should include (m.render)
         s should include (s"(${n.getId})")
       }
     }

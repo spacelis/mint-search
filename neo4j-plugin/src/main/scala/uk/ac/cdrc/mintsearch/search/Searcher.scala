@@ -38,11 +38,7 @@ trait NeighbourBasedSearcher extends GraphSearcher {
       rs <- resultSets
     } yield rs.queryNode -> (rs.ranked zip rs.scores map (m => m._1.getId -> m._2))).toMap)
 
-    val res = rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).take(limit).toIndexedSeq)
-
-    val render = NodeOnlyAsciiRender(Seq("value"))
-    logger.debug(s"graphs=\n${res map {case(g, s) => s"$s <= ${render.toAscii(g)}" } mkString "\n"}")
-    res
+    rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).take(limit).toIndexedSeq)
   }
 
 }
