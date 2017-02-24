@@ -76,7 +76,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
             firstNodes should contain(nodeA)
             firstNodes should contain(nodeB)
             firstNodes should contain(nodeC)
-            (embeddings flatMap (_.keyNodes)).toSet should be(Set(nodeA, nodeB, nodeC))
+            embeddings flatMap (_.projection.keySet) should contain theSameElementsAs Set(nodeA, nodeB, nodeC)
           }
         }
       }
@@ -106,7 +106,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
             firstNodes should contain(nodeA)
             firstNodes should not contain nodeB
             firstNodes should not contain nodeC
-            (embeddings flatMap (_.keyNodes)).toSet should be(Set(nodeA, nodeB, nodeC))
+            embeddings flatMap (_.projection.keySet) should contain theSameElementsAs Set(nodeA, nodeB, nodeC)
           }
         }
       }
@@ -138,15 +138,15 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
 
             val first = expanded.head
             first.nodeIds should contain theSameElementsAs nodes.slice(0, 3)
-            first.keyNodes should be(List(nodes(0)))
+            first.projection.keySet should be(Set(nodes(0)))
 
             val second = expanded(1)
             second.nodeIds should contain theSameElementsAs nodes.slice(5, nodes.length)
-            second.keyNodes should be(List(nodes(7)))
+            second.projection.keySet should be(Set(nodes(7)))
 
             val third = expanded(2)
             third.nodeIds should contain theSameElementsAs nodes.slice(2, 7)
-            third.keyNodes should be(List(nodes(4)))
+            third.projection.keySet should be(Set(nodes(4)))
           }
         }
       }
@@ -178,11 +178,11 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
 
             val first = expanded.head
             first.nodeIds should contain theSameElementsAs nodes.slice(0, 3)
-            first.keyNodes should be(List(nodes(0)))
+            first.projection.keySet should be(Set(nodes(0)))
 
             val second = expanded(1)
             second.nodeIds should contain theSameElementsAs nodes.slice(0, 4)
-            second.keyNodes should be(List(nodes(1)))
+            second.projection.keySet should be(Set(nodes(1)))
           }
         }
       }
@@ -214,7 +214,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
             expanded should have length 1
             val expandedNodes = expanded.head.nodeIds.toSet
             expandedNodes should contain theSameElementsAs Set(nodes(0), nodes(1), nodes(2))
-            expanded.head.keyNodes should contain theSameElementsAs Set(nodes(0), nodes(2))
+            expanded.head.projection.keySet should contain theSameElementsAs Set(nodes(0), nodes(2))
           }
         }
       }

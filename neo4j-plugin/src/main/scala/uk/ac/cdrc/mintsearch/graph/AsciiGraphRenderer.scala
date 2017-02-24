@@ -40,8 +40,8 @@ case class NodeOnlyAsciiRenderer(nodeProperties: Seq[String]) extends AsciiGraph
       val nodes: String = (for {
         n <- embedding.nodes
       } yield n -> Seq.empty).toMap.render
-      val keyNodes = embedding.nodes filter (embedding.keyNodes contains _.getId) map {x => s"${x.render}"} mkString ", "
-      s"""# $keyNodes
+      val projection = embedding.nodes filter (embedding.projection contains _.getId) map { x => s"${x.render}=${embedding.projection(x.getId)}"} mkString ", "
+      s"""# $projection
          |$nodes
       """.stripMargin
     }

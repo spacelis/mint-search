@@ -198,7 +198,7 @@ class ConnComponentEnumSpec extends fixture.WordSpec with Matchers {
               r <- p.relationships().asScala
             } yield r).toList
 
-            val sgs = GraphEmbedding(nodes, relationships, List.empty)
+            val sgs = GraphEmbedding(nodes, relationships, Map.empty)
             val sgsNodeNames = sgs.nodes.map(_.getProperty("name")).toSet
             sgsNodeNames should be(Set("Alice", "Bob", "Carl"))
           }

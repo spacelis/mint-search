@@ -52,8 +52,8 @@ trait ConnComponentEnumContext extends EmbeddingEnumeratorContext {
       component map { case (seed, neighbourPaths) =>
         val nodes = seed ++ neighbourPaths.values.flatMap(_.nodes().asScala)
         val relationships = neighbourPaths.values.flatMap(_.relationships().asScala).toSet
-        val keyNodes = nodes.filter(nms.rev.keySet contains _.getId).map(_.getId)
-        GraphEmbedding(nodes.toList, relationships.toList, keyNodes.toList)
+        val projection = nms.rev.filterKeys(nodes map {_.getId})
+        GraphEmbedding(nodes.toList, relationships.toList, projection)
       }
     } else {
       Stream.empty
@@ -102,7 +102,7 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
   final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
     lazy val nms: Stream[NodeMatchingSet] = nodeMatchingSet #::
       (nms.takeWhile(_.nonEmpty) zip embeddings
-        map {x => x._1 removeMatchingNode x._2.flatMap(_.keyNodes).toSet})
+        map {x => x._1 removeMatchingNode x._2.flatMap(_.projection.keySet).toSet})
     lazy val embeddings: Stream[Stream[GraphEmbedding]] = nms map initialEmbeddings
     embeddings.flatten
   }
@@ -115,8 +115,8 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     */
   def initialEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
     if (nodeMatchingSet.map.nonEmpty) {
-      val (v, n, _) = nodeMatchingSet.map.map(m => (m._1, m._2.head._1, m._2.head._2)).toVector.sortBy(_._3).head
-      startFromNode(n, nodeMatchingSet.removeQueryNode(Seq(v)))
+      val (v, n, s) = nodeMatchingSet.map.map(m => (m._1, m._2.head._1, m._2.head._2)).toVector.sortBy(_._3).head
+      startFromNode(n, v, s, nodeMatchingSet.removeQueryNode(Seq(v)))
     } else
       Stream.empty
   }
@@ -125,13 +125,14 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * Return a connect component by start from n within the range of all target nodes in
     * nodeMatchingSet
     * @param n a node not in nodeMatchingSet
+    * @param v the corresponding node in query
     * @param nodeMatchingSet a NodeMatchingSet defining the search range
     * @return a sequence of embeddings
     */
-  def startFromNode(n: NodeId, nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
+  def startFromNode(n: NodeId, v: NodeId, s: Double, nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
     logger.info(s"start from $n")
     val nbs = (db.getNodeById(n).neighbours map (x => x.endNode().getId -> x)).toMap
-    expandingStep(nodeMatchingSet.removeMatchingNode(Set(n)), nbs, List(n))
+    expandingStep(nodeMatchingSet.removeMatchingNode(Set(n)), nbs, Map(n -> (v, s)))
   }
 
   /**
@@ -140,24 +141,24 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * @param textile partial embeddings
     * @return a sequence of embeddings
     */
-  def expandingStep(nodeMatchingSet: NodeMatchingSet, textile: Map[NodeId, Path], keyNodes: List[NodeId]): Stream[GraphEmbedding] = {
+  def expandingStep(nodeMatchingSet: NodeMatchingSet, textile: Map[NodeId, Path], projection: Map[NodeId, (NodeId, Double)]): Stream[GraphEmbedding] = {
     val matched = nodeMatchingSet.map.values.flatten.map(_._1).toSet
     val expandables = matched & textile.keySet
     if (expandables.isEmpty){
-      Stream(makeGraphEmbedding(textile, keyNodes))
+      Stream(makeGraphEmbedding(textile, projection))
     }
     else for {
         n <- expandables.toStream
-        v = nodeMatchingSet.rev(n)._1
+        (v, s) = nodeMatchingSet.rev(n)
         patch = db.getNodeById(n).NeighboursIn(matched).toSeq
         neighours = patch map ((x: Path) => x.endNode().getId -> x)
-        m <- expandingStep(nodeMatchingSet.removeQueryNode(Seq(v)).removeMatchingNode(Set(n)), textile ++ neighours, n :: keyNodes)
+        m <- expandingStep(nodeMatchingSet.removeQueryNode(Seq(v)).removeMatchingNode(Set(n)), textile ++ neighours, projection + (n -> (v, s)))
       } yield {
         m
       }
   }
 
-  def makeGraphEmbedding(textile: Map[NodeId, Path], keyNodes: List[NodeId]): GraphEmbedding = {
+  def makeGraphEmbedding(textile: Map[NodeId, Path], projection: Map[NodeId, (NodeId, Double)]): GraphEmbedding = {
     val nodes = for {
       p <- textile.values.toList
       n <- p.nodes().asScala
@@ -166,6 +167,6 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
       p <- textile.values.toList
       r <- p.relationships().asScala
     } yield r
-    GraphEmbedding((nodes ++ (keyNodes map {x => db.getNodeById(x)})).distinct, relationships.distinct, keyNodes)
+    GraphEmbedding((nodes ++ (projection.keySet map db.getNodeById)).distinct, relationships.distinct, projection)
   }
 }

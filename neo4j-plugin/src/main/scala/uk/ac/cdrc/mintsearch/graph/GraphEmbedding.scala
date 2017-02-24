@@ -11,7 +11,7 @@ import uk.ac.cdrc.mintsearch.NodeId
   * @param nodes the nodes in a sub graph
   * @param relationships the relationships in a sub graph
   */
-case class GraphEmbedding(nodes: List[Node], relationships: List[Relationship], keyNodes: List[NodeId]) {
+case class GraphEmbedding(nodes: List[Node], relationships: List[Relationship], projection: Map[NodeId, (NodeId, Double)]) {
   lazy val nodeIds: List[NodeId] = for (n <- nodes) yield n.getId
 
   def toNeo4JSubGraph: CypherResultSubGraph = {
