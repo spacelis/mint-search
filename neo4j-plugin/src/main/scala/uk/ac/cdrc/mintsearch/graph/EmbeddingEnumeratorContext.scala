@@ -100,7 +100,6 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * @return a stream of embeddings
     */
   final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
-    logger.info(s"embedding from $nodeMatchingSet")
     lazy val nms: Stream[NodeMatchingSet] = nodeMatchingSet #::
       (nms.takeWhile(_.nonEmpty) zip embeddings
         map {x => x._1 removeMatchingNode x._2.flatMap(_.keyNodes).toSet})
