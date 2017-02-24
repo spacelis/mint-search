@@ -84,7 +84,7 @@ class TerrierNeighbourAggregatedGraphSearch extends Neo4JProcedure {
         (for {
           ((g, s), i) <- (res.graphSnippets zip res.scores).zipWithIndex
         } yield {
-          log.debug(s"graphs[$i] = \n$s <= ${g.render}}")
+          log.info(s"graphs[$i] = $s \n${g.render}\n=======")
           new GraphResult(g.nodes.asJava, g.relationships.asJava)
         }).seqStream
       }
