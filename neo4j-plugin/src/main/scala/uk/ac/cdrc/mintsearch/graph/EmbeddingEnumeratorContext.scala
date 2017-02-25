@@ -126,6 +126,7 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * nodeMatchingSet
     * @param n a node not in nodeMatchingSet
     * @param v the corresponding node in query
+    * @param s the corresponding node score for query node
     * @param nodeMatchingSet a NodeMatchingSet defining the search range
     * @return a sequence of embeddings
     */
@@ -142,15 +143,15 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * @return a sequence of embeddings
     */
   def expandingStep(nodeMatchingSet: NodeMatchingSet, textile: Map[NodeId, Path], projection: Map[NodeId, (NodeId, Double)]): Stream[GraphEmbedding] = {
-    val matched = nodeMatchingSet.map.values.flatten.map(_._1).toSet
-    val expandables = matched & textile.keySet
-    if (expandables.isEmpty){
+    val matched = nodeMatchingSet.map.values.flatten.toSet
+    val expansible = (matched filter {textile.keySet contains _._1}).toSeq.sortBy(_._2).map(_._1)
+    if (expansible.isEmpty){
       Stream(makeGraphEmbedding(textile, projection))
     }
     else for {
-        n <- expandables.toStream
+        n <- expansible.toStream
         (v, s) = nodeMatchingSet.rev(n)
-        patch = db.getNodeById(n).NeighboursIn(matched).toSeq
+        patch = db.getNodeById(n).NeighboursIn(matched.map(_._1)).toSeq
         neighours = patch map ((x: Path) => x.endNode().getId -> x)
         m <- expandingStep(nodeMatchingSet.removeQueryNode(Seq(v)).removeMatchingNode(Set(n)), textile ++ neighours, projection + (n -> (v, s)))
       } yield {
