@@ -7,7 +7,7 @@ package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.{Node, Path}
 import uk.ac.cdrc.mintsearch._
-import uk.ac.cdrc.mintsearch.index.LabelTypeContext
+import uk.ac.cdrc.mintsearch.index.NodeDefContext
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 
 import scala.collection.JavaConverters._
@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
   * This trait provides methods and objects to find neighbours in the graph
   */
 trait NeighbourAwareContext {
-  self: GraphDBContext with TraversalStrategy with PropagationStrategy with LabelTypeContext =>
+  self: GraphDBContext with TraversalStrategy with PropagationStrategy with NodeDefContext =>
 
 
   class NeighbourVisitor(val node: Node) {

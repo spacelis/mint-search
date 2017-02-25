@@ -9,7 +9,7 @@ import uk.ac.cdrc.mintsearch.WeightedLabelSet
 /**
   * Test KeyValueLabelType
   */
-class KeyValueLabelTypeSpec extends WordSpec with Matchers {
+class KeyValueNodeSpec extends WordSpec with Matchers {
 
 //  implicit val arbEntry = for {
 //    a <- Arbitrary.arbString.arbitrary
@@ -22,7 +22,7 @@ class KeyValueLabelTypeSpec extends WordSpec with Matchers {
 //  } yield es.toMap
 
   "KeyValueLabelType" should {
-    "encode and decode WLS" in new KeyValueLabelType {
+    "encode and decode WLS" in new KeyValueNode {
       forAll {
         (wls: Map[(String, String), Double]) =>
           wls == deJSONfy(JSONfy(wls))

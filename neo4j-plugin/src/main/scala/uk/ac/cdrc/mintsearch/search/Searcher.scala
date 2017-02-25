@@ -5,7 +5,7 @@ package uk.ac.cdrc.mintsearch.search
 
 import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch.graph._
-import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelMaker}
+import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, NodeMarker}
 import uk.ac.cdrc.mintsearch.neo4j._
 import uk.ac.cdrc.mintsearch.ranking.{EmbeddingRanking, NodeRanking}
 import uk.ac.cdrc.mintsearch.{GraphDoc, NodeMatchingSet}
@@ -13,12 +13,12 @@ import uk.ac.cdrc.mintsearch.{GraphDoc, NodeMatchingSet}
 case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphEmbedding], scores: IndexedSeq[Double])
 
 trait GraphSearcher {
-  self: QueryAnalyzer with LabelMaker with EmbeddingEnumeratorContext =>
+  self: QueryAnalyzer with NodeMarker with EmbeddingEnumeratorContext =>
   def search(gsq: GraphQuery, limit: Int = 3): GraphSearchResult
 }
 
 trait TruncatedSearcher extends GraphSearcher {
-  self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
+  self: BaseIndexReader with GraphDBContext with NodeMarker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
 
   private val logger = LoggerFactory.getLogger(classOf[GraphSearcher])
 
@@ -55,7 +55,7 @@ trait TruncatedSearcher extends GraphSearcher {
 }
 
 trait LargePoolTruncatedSearcher extends TruncatedSearcher {
-  self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
+  self: BaseIndexReader with GraphDBContext with NodeMarker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
 
   override def graphDocSearch(query: GraphDoc[L], limit: Int): IndexedSeq[(GraphEmbedding, Double)] = {
     val bufferSize = query.size * limit * 2

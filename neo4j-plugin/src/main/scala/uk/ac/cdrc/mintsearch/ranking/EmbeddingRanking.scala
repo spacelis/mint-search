@@ -1,14 +1,14 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import uk.ac.cdrc.mintsearch.graph.GraphEmbedding
-import uk.ac.cdrc.mintsearch.index.LabelTypeContext
+import uk.ac.cdrc.mintsearch.index.NodeDefContext
 import uk.ac.cdrc.mintsearch.{GraphDoc, NodeId}
 
 /**
   * A component of ranking
   */
 trait EmbeddingRanking {
-  self: NodeSearchResultContext with LabelTypeContext =>
+  self: NodeSearchResultContext with NodeDefContext =>
   def rankGraphs(
     query: GraphDoc[L],
     embeddings: IndexedSeq[GraphEmbedding]
@@ -16,7 +16,7 @@ trait EmbeddingRanking {
 }
 
 trait SimpleEmbeddingRanking extends EmbeddingRanking {
-  self: NodeSearchResultContext with NodeSimilarity with LabelTypeContext =>
+  self: NodeSearchResultContext with NodeSimilarity with NodeDefContext =>
 
   /**
     * Ranking the the retrieved graph by summing matching scores of nodes inside each of them

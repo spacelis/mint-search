@@ -4,11 +4,11 @@
 package uk.ac.cdrc.mintsearch.ranking
 
 import org.neo4j.graphdb.Node
-import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelTypeContext}
+import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, NodeDefContext}
 import uk.ac.cdrc.mintsearch.{NodeId, WeightedLabelSet}
 
 trait NodeSearchResultContext {
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   case class NodeSearchResult(
     queryNode: NodeId,
     wls: WeightedLabelSet[L],
@@ -18,12 +18,12 @@ trait NodeSearchResultContext {
 }
 
 trait NodeRanking extends NodeSearchResultContext {
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   def searchNodes(queryNode: NodeId, query: WeightedLabelSet[L]): NodeSearchResult
 }
 
 trait SimpleNodeRanking extends NodeRanking {
-  self: BaseIndexReader with NodeSimilarity with LabelTypeContext =>
+  self: BaseIndexReader with NodeSimilarity with NodeDefContext =>
   override def searchNodes(queryNode: NodeId, query: WeightedLabelSet[L]): NodeSearchResult = {
     val nodes = getNodesByLabels(query.keySet)
     val nodesWithScore = for {
@@ -37,7 +37,7 @@ trait SimpleNodeRanking extends NodeRanking {
 }
 
 trait NessNodeRanking extends NodeRanking {
-  self: BaseIndexReader with NessNodeSimilarity with LabelTypeContext =>
+  self: BaseIndexReader with NessNodeSimilarity with NodeDefContext =>
   override def searchNodes(queryNode: NodeId, query: WeightedLabelSet[L]): NodeSearchResult = {
     val nodes = getNodesByLabels(query.keySet)
     val nodesWithScore = for {

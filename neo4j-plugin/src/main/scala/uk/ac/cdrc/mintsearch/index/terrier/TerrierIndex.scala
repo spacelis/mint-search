@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
   * The following are adapters for Terrier's indexing facility
   */
 trait TerrierIndex extends BaseIndexManager{
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   val prefix: String = "mintsearch-terrier"
   val path: File = TerrierIndex.pathDir.value
 
@@ -45,7 +45,7 @@ object TerrierIndex {
   * Terrier's index reader
   */
 trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
-  self: LabelMaker =>
+  self: NodeMarker =>
 
   /**
     * Different weighting model can be used for getting nodes.
@@ -106,7 +106,7 @@ trait TerrierIndexReader extends BaseIndexReader with TerrierIndex {
   * Building a node index based on nodes' neighbourhoods using the Lucene.
   */
 trait TerrierIndexWriter extends BaseIndexWriter with TerrierIndex {
-  self: NeighbourAwareContext with LabelMaker =>
+  self: NeighbourAwareContext with NodeMarker =>
 
   /**
     * Implement Document type from Terrier for nodes in Neo4J

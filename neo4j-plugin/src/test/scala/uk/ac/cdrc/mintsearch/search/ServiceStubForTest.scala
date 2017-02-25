@@ -5,7 +5,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.ServerControls
 import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
-import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyLabelMaker}
+import uk.ac.cdrc.mintsearch.index.{BaseIndexWriter, LegacyNeighbourBaseIndexReader, LegacyNeighbourBaseIndexWriter, PropertyNodeMarker}
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleEmbeddingRanking, SimpleNodeRanking}
 
@@ -32,7 +32,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
 
   val indexWriter = new LegacyNeighbourBaseIndexWriter
     with ExponentialPropagation
-    with PropertyLabelMaker
+    with PropertyNodeMarker
     with NeighbourhoodByRadius
     with NeighbourAwareContext {
 
@@ -48,7 +48,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
     with LegacyNeighbourBaseIndexReader
     with GraphDBContext
     with ExponentialPropagation
-    with PropertyLabelMaker
+    with PropertyNodeMarker
     with NeighbourhoodByRadius
     with NeighbourAwareContext
     with NeighbourAggregatedAnalyzer
@@ -71,7 +71,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
 
   val indexWriter = new TerrierIndexWriter
     with ExponentialPropagation
-    with PropertyLabelMaker
+    with PropertyNodeMarker
     with NeighbourhoodByRadius
     with NeighbourAwareContext {
 
@@ -87,7 +87,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
     with TerrierIndexReader
     with GraphDBContext
     with ExponentialPropagation
-    with PropertyLabelMaker
+    with PropertyNodeMarker
     with NeighbourhoodByRadius
     with NeighbourAwareContext
     with NeighbourAggregatedAnalyzer

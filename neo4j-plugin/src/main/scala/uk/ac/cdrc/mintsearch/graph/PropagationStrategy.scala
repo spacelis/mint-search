@@ -5,10 +5,10 @@ package uk.ac.cdrc.mintsearch.graph
 
 import org.neo4j.graphdb.Path
 import uk.ac.cdrc.mintsearch.WeightedLabelSet
-import uk.ac.cdrc.mintsearch.index.LabelMaker
+import uk.ac.cdrc.mintsearch.index.NodeMarker
 
 trait PropagationStrategy {
-  self: LabelMaker =>
+  self: NodeMarker =>
   def propagate(p: Path): WeightedLabelSet[L]
   def propagate(p: Path, w: Double): WeightedLabelSet[L] = {
     collectLabels(p.endNode()) map { _ -> w } toMap
@@ -16,7 +16,7 @@ trait PropagationStrategy {
 }
 
 trait ExponentialPropagation extends PropagationStrategy {
-  self: LabelMaker =>
+  self: NodeMarker =>
 
   val propagationFactor: Double
 

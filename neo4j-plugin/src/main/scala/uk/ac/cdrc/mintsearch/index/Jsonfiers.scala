@@ -15,7 +15,7 @@ import scala.pickling.static._
   * Created by ucfawli on 2/16/17.
   */
 trait ScalaPicklingJsonfier {
-  self: KeyValueLabelTypeStub =>
+  self: KeyValueNodeStub =>
 
   case class KVLabelStore(ks: Array[String], vs: Array[String], ws: Array[Double])
 
@@ -43,7 +43,7 @@ trait ScalaPicklingJsonfier {
 case class KVLabelStoreSJ(ks: Seq[String], vs: Seq[String], ws: Seq[Double])
 
 trait ScalaJackJsonfier {
-  self: KeyValueLabelTypeStub =>
+  self: KeyValueNodeStub =>
 
   def toKVLabelStore(wls: WeightedLabelSet[L]): KVLabelStoreSJ = {
     val (kvs, ws) = wls.toSeq.unzip[(String, String), Double]

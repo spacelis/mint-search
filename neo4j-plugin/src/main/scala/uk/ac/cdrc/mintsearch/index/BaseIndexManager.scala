@@ -21,13 +21,13 @@ trait BaseIndexManager extends GraphDBContext {
 }
 
 trait BaseIndexReader extends BaseIndexManager {
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   def getNodesByLabels(labelSet: Set[L]): IndexedSeq[Node]
   def retrieveWeightedLabels(n: Node): WeightedLabelSet[L]
 }
 
 trait BaseIndexWriter extends BaseIndexManager {
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   def index(): Unit
   def index(n: Node): Unit
   def reset_index(): Unit

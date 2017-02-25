@@ -10,7 +10,7 @@ import org.scalatest._
 import uk.ac.cdrc.mintsearch.graph.ExponentialPropagation
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 
-class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
+class PropertyLabelNodeMarkerSpec extends fixture.WordSpec with Matchers {
 
   case class FixtureParam(neo4jServer: ServerControls) extends AutoCloseable {
 
@@ -19,7 +19,7 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
       Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig
     )
 
-    val context = new GraphDBContext with PropertyLabelMaker with ExponentialPropagation {
+    val context = new GraphDBContext with PropertyLabelNodeMarker with ExponentialPropagation {
       override val labelStorePropKey: String = s"__nagg_0"
       override val db: GraphDatabaseService = neo4jServer.graph()
       override val propagationFactor: Double = 0.5
@@ -50,7 +50,7 @@ class PropertyLabelMakerSpec extends fixture.WordSpec with Matchers {
             .single()
             .get(0).asLong()
           WithResource(context.db.beginTx()) { _ =>
-            context.collectLabels(context.db.getNodeById(nodeId)) shouldBe Stream(("name", "Alice"), ("gender", "Female"))
+            context.collectLabels(context.db.getNodeById(nodeId)) should contain theSameElementsAs Seq(("name", "Alice"), ("gender", "Female"), ("LABEL", "Person"))
           }
         }
       }

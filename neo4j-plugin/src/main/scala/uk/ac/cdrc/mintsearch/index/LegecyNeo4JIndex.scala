@@ -19,7 +19,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
   * though it provides limited access to the underlying lucene indices.
   */
 trait Neo4JBaseIndexManager extends BaseIndexManager {
-  self: LabelTypeContext =>
+  self: NodeDefContext =>
   def indexDB: Index[Node] = db.index().forNodes(indexName, EXACT_TEXT.asJava)
 }
 
@@ -28,7 +28,7 @@ trait Neo4JBaseIndexManager extends BaseIndexManager {
   * Those matched nodes will be further ranked, filtered and composed to matched sub graphs.
   */
 trait LegacyNeighbourBaseIndexReader extends BaseIndexReader with Neo4JBaseIndexManager {
-  self: LabelMaker =>
+  self: NodeMarker =>
 
   def encodeQuery(labelSet: Set[L]): String = {
     (for {
@@ -47,7 +47,7 @@ trait LegacyNeighbourBaseIndexReader extends BaseIndexReader with Neo4JBaseIndex
   * Building a node index based on nodes' neighbourhoods using the Lucene.
   */
 trait LegacyNeighbourBaseIndexWriter extends BaseIndexWriter with Neo4JBaseIndexManager {
-  self: NeighbourAwareContext with LabelMaker =>
+  self: NeighbourAwareContext with NodeMarker =>
   override def index(): Unit = {
     implicit val ec = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
     val executed = for (nodeSet <- db.getAllNodes.asScala.toIterator.grouped(1000))

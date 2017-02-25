@@ -6,18 +6,18 @@ package uk.ac.cdrc.mintsearch.search
 import org.neo4j.graphdb.Node
 import uk.ac.cdrc.mintsearch.GraphDoc
 import uk.ac.cdrc.mintsearch.graph.NeighbourAwareContext
-import uk.ac.cdrc.mintsearch.index.LabelMaker
+import uk.ac.cdrc.mintsearch.index.NodeMarker
 import uk.ac.cdrc.mintsearch.neo4j.WithResource
 
 import scala.collection.JavaConverters._
 
 trait QueryAnalyzer {
-  self: LabelMaker =>
+  self: NodeMarker =>
   def analyze(q: GraphQuery): GraphDoc[L]
 }
 
 trait NeighbourAggregatedAnalyzer extends QueryAnalyzer {
-  self: NeighbourAwareContext with LabelMaker =>
+  self: NeighbourAwareContext with NodeMarker =>
   override def analyze(q: GraphQuery): GraphDoc[L] = WithResource(q.qdb.beginTx()) { _ =>
     mkGraphDoc(q.qdb.getAllNodes.asScala.toSet)
   }

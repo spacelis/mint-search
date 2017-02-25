@@ -23,7 +23,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
     )
     val indexWriter = new LegacyNeighbourBaseIndexWriter
         with ExponentialPropagation
-        with PropertyLabelMaker
+        with PropertyNodeMarker
         with NeighbourhoodByRadius
         with NeighbourAwareContext {
 
@@ -36,7 +36,7 @@ class NeighbourNodeIndexSpec extends fixture.WordSpec with Matchers {
     }
     val indexReader = new LegacyNeighbourBaseIndexReader
         with ExponentialPropagation
-        with PropertyLabelMaker
+        with PropertyNodeMarker
         with NeighbourhoodByRadius
         with NeighbourAwareContext
         with NessNodeSimilarity

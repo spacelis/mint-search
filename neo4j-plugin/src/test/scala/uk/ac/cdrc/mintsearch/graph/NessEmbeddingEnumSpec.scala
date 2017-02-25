@@ -9,7 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.harness.{ServerControls, TestServerBuilder, TestServerBuilders}
 import org.scalatest._
 import uk.ac.cdrc.mintsearch.NodeMatchingSet
-import uk.ac.cdrc.mintsearch.index.PropertyLabelMaker
+import uk.ac.cdrc.mintsearch.index.PropertyNodeMarker
 import uk.ac.cdrc.mintsearch.neo4j.{GraphDBContext, WithResource}
 import uk.ac.cdrc.mintsearch.ranking.NessNodeSimilarity
 
@@ -24,7 +24,7 @@ class NessEmbeddingEnumSpec extends fixture.WordSpec with Matchers {
 
     val context = new GraphDBContext
       with ExponentialPropagation
-      with PropertyLabelMaker
+      with PropertyNodeMarker
       with NeighbourhoodByRadius
       with NeighbourAwareContext
       with NessNodeSimilarity
