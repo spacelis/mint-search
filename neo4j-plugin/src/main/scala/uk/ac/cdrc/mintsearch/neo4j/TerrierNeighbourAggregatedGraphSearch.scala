@@ -8,7 +8,7 @@ import uk.ac.cdrc.mintsearch.ServiceStub
 import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext, NodeOnlyAsciiRenderer}
 import uk.ac.cdrc.mintsearch.index.BaseIndexWriter
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
-import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleGraphRanking, SimpleNodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleEmbeddingRanking, SimpleNodeRanking}
 import uk.ac.cdrc.mintsearch.search.{ConfR2expPropLIdx, NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
 
 import scala.collection.JavaConverters._
@@ -35,7 +35,7 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
         with NeighbourAggregatedAnalyzer
         with NessNodeSimilarity
         with SimpleNodeRanking
-        with SimpleGraphRanking
+        with SimpleEmbeddingRanking
         with ConnComponentEnumContext
         with SimpleQueryBuilder {
 

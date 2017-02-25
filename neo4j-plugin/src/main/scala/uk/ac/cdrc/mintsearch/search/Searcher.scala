@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, LabelMaker}
 import uk.ac.cdrc.mintsearch.neo4j._
-import uk.ac.cdrc.mintsearch.ranking.{GraphRanking, NodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{EmbeddingRanking, NodeRanking}
 import uk.ac.cdrc.mintsearch.{GraphDoc, NodeMatchingSet}
 
 case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphEmbedding], scores: IndexedSeq[Double])
@@ -18,7 +18,7 @@ trait GraphSearcher {
 }
 
 trait NeighbourBasedSearcher extends GraphSearcher {
-  self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with GraphRanking with EmbeddingEnumeratorContext =>
+  self: BaseIndexReader with GraphDBContext with LabelMaker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
 
   private val logger = LoggerFactory.getLogger(classOf[NeighbourBasedSearcher])
 
@@ -46,7 +46,7 @@ trait NeighbourBasedSearcher extends GraphSearcher {
       s"""nodeRankLists=
          |${nodeMatchingSet.map map {case(k, v) => s"$k => $v"} mkString "\n"}
          |=============""".stripMargin)
-    rankGraphs(query, resultSets, composeEmbeddings(nodeMatchingSet).take(limit).toIndexedSeq)
+    rankGraphs(query, composeEmbeddings(nodeMatchingSet).take(limit).toIndexedSeq)
   }
 
 }
