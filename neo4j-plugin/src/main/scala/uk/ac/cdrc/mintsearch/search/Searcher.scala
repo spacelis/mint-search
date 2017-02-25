@@ -26,7 +26,7 @@ trait TruncatedSearcher extends GraphSearcher {
     val analyzedQuery = analyze(gsq)
     logger.info(
       s"""query=
-         |${analyzedQuery map {case (k, v) => s"$k => $v"} mkString "\n"}
+         |${analyzedQuery map {case (k, v) => s"V$k => $v"} mkString "\n"}
          |===========""".stripMargin)
     val (graphSnippets, scores) = graphDocSearch(analyzedQuery, limit).unzip
     GraphSearchResult(gsq, graphSnippets, scores)
@@ -42,7 +42,7 @@ trait TruncatedSearcher extends GraphSearcher {
     } yield rs.queryNode -> (rs.ranked zip rs.scores take limit map (m => m._1.getId -> m._2))).toMap)
     logger.info(
       s"""nodeRankLists=
-         |${nodeMatchingSet.map map {case(k, v) => s"$k => $v"} mkString "\n"}
+         |${nodeMatchingSet.map map {case(k, v) => s"V$k => $v"} mkString "\n"}
          |=============""".stripMargin)
     nodeMatchingSet
   }

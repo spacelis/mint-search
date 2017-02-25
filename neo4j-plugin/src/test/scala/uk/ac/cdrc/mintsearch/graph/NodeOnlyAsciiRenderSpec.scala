@@ -58,7 +58,7 @@ class NodeOnlyAsciiRenderSpec extends fixture.WordSpec with Matchers {
         val s = GraphEmbedding(List(n, m), List.empty, Map(n.getId -> (-1l, 1.0d))).render
         s should include (n.render)
         s should include (m.render)
-        s should startWith (s"# ${n.render}=(-1,1.0)")
+        s should startWith (s"# ${n.render}->V-1 [1.0]")
       }
     }
   }
