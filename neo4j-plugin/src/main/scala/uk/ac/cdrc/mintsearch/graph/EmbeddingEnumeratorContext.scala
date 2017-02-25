@@ -53,7 +53,7 @@ trait ConnComponentEnumContext extends EmbeddingEnumeratorContext {
         val nodes = seed ++ neighbourPaths.values.flatMap(_.nodes().asScala)
         val relationships = neighbourPaths.values.flatMap(_.relationships().asScala).toSet
         val projection = nms.inverse.filterKeys(nodes map {_.getId})
-        GraphEmbedding(nodes.toList, relationships.toList, projection)
+        GraphEmbedding(nodes.toList, relationships.toList, projection.mapValues(_.head))
       }
     } else {
       Stream.empty
@@ -150,7 +150,7 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     }
     else for {
         n <- expansible.toStream
-        (v, s) = nodeMatchingSet.inverse(n)
+        (v, s) = nodeMatchingSet.inverse(n).head
         patch = db.getNodeById(n).NeighboursIn(matched.map(_._1)).toSeq
         neighours = patch map ((x: Path) => x.endNode().getId -> x)
         m <- expandingStep(nodeMatchingSet.removeQueryNodes(Seq(v)).removeCandidates(Set(n)), textile ++ neighours, projection + (n -> (v, s)))
@@ -176,21 +176,30 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
 trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
   self: GraphDBContext with NodeSimilarity with TraversalStrategy with NeighbourAwareContext =>
 
-  private val logger = LoggerFactory.getLogger(classOf[NessEmbeddingEnumContext])
-
   /**
     * Iterate through the growing size of node matching sets.
     * @param nodeMatchingSet a node matching set
     * @return a stream of graph embeddings
     */
-  final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
-    lazy val nms: Stream[(NodeMatchingSet, Int)] = (nodeMatchingSet.take(1) -> 1) #:: (nms map {case (_, l) => nodeMatchingSet.take(l + 1) -> l})
-    lazy val embeddings: Stream[Stream[GraphEmbedding]] = nms map {case (matching, _) => findEmbeddingsIn(matching)}
-    embeddings.flatten
-  }
-
-  def findEmbeddingsIn(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
-    initialEmbeddings(nodeMatchingSet).filter(_.projection.size == nodeMatchingSet.matching.size)
+  override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
+    val matchQueue = (for {
+      (n, vs) <- nodeMatchingSet.take(nodeMatchingSet.matching.size + 1).inverse.toVector
+      (v, s) <- vs
+    } yield (n, (v, s))).sortBy(_._2._2)
+    val first = matchQueue.toStream.scanLeft((Map.empty[NodeId, (NodeId, Double)], false)){ (m, c) =>
+      if (m._1 contains c._1)
+        (m._1, m._2)
+      else
+        (m._1 + c, m._1.size + 1 == nodeMatchingSet.matching.size)
+    }.filter(_._2).take(1)
+    first map {case (m, _) =>
+        val bubbles = (for {
+          nid <- m.keySet
+          n = db.getNodeById(nid)
+          nn <- n.neighbours
+        } yield nn.endNode().getId -> nn).toMap
+        makeGraphEmbedding(bubbles, m)
+    }
   }
 
 }
