@@ -21,25 +21,24 @@ package object mintsearch {
   /**
     * A mapping from a node (by its ID) to a list of nodes (IDs)
     */
-  case class NodeMatchingSet(map: Map[NodeId, Seq[(NodeId, Double)]]) {
-    lazy val rev: Map[NodeId, (NodeId, Double)] = (for {
-      (v, ns) <- map.toSeq
+  case class NodeMatchingSet(matching: Map[NodeId, Seq[(NodeId, Double)]]) {
+    lazy val inverse: Map[NodeId, (NodeId, Double)] = (for {
+      (v, ns) <- matching.toSeq
       (n, s) <- ns
     } yield n -> (v -> s)).toMap
-    lazy val matched: Set[NodeId] = map.values.flatten.map(_._1).toSet
-    def removeQueryNode(vs: Seq[NodeId]): NodeMatchingSet = NodeMatchingSet(map.filterKeys(k => ! (vs contains k)))
-    def removeMatchingNode(ns: Set[NodeId]): NodeMatchingSet = NodeMatchingSet(for {
-      (k, nodes) <- map
+    lazy val candidates: Set[NodeId] = matching.values.flatten.map(_._1).toSet
+    def removeQueryNodes(vs: Seq[NodeId]): NodeMatchingSet = NodeMatchingSet(matching.filterKeys(k => ! (vs contains k)))
+    def removeCandidates(ns: Set[NodeId]): NodeMatchingSet = NodeMatchingSet(for {
+      (k, nodes) <- matching
       left = nodes filter (n => !(ns contains n._1))
       if left.nonEmpty
     } yield k -> left)
-    def nonEmpty: Boolean = map.nonEmpty
-  }
+    def nonEmpty: Boolean = matching.nonEmpty
 
-  /**
-    * A mapping of a candidate node to the query node
-    */
-  type NodeMatch = (NodeId, NodeId)
+    def take(n: Int) = NodeMatchingSet(for {
+      (v, ns) <- matching
+    } yield v -> ns.take(n))
+  }
 
   /**
     * A mapping from node to its weighted label set

@@ -42,7 +42,7 @@ trait TruncatedSearcher extends GraphSearcher {
     } yield rs.queryNode -> (rs.ranked zip rs.scores take limit map (m => m._1.getId -> m._2))).toMap)
     logger.info(
       s"""nodeRankLists=
-         |${nodeMatchingSet.map map {case(k, v) => s"V$k => $v"} mkString "\n"}
+         |${nodeMatchingSet.matching map {case(k, v) => s"V$k => $v"} mkString "\n"}
          |=============""".stripMargin)
     nodeMatchingSet
   }
