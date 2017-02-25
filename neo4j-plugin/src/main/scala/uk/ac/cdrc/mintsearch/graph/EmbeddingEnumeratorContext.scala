@@ -99,7 +99,7 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     * @param nodeMatchingSet a set of node ranking lists
     * @return a stream of embeddings
     */
-  final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
+  override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
     lazy val nms: Stream[NodeMatchingSet] = nodeMatchingSet #::
       (nms.takeWhile(_.nonEmpty) zip embeddings
         map {x => x._1 removeCandidates x._2.flatMap(_.projection.keySet).toSet})
@@ -170,4 +170,27 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
     } yield r
     GraphEmbedding((nodes ++ (projection.keySet map db.getNodeById)).distinct, relationships.distinct, projection)
   }
+}
+
+
+trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
+  self: GraphDBContext with NodeSimilarity with TraversalStrategy with NeighbourAwareContext =>
+
+  private val logger = LoggerFactory.getLogger(classOf[NessEmbeddingEnumContext])
+
+  /**
+    * Iterate through the growing size of node matching sets.
+    * @param nodeMatchingSet a node matching set
+    * @return a stream of graph embeddings
+    */
+  final override def composeEmbeddings(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
+    lazy val nms: Stream[(NodeMatchingSet, Int)] = (nodeMatchingSet.take(1) -> 1) #:: (nms map {case (_, l) => nodeMatchingSet.take(l + 1) -> l})
+    lazy val embeddings: Stream[Stream[GraphEmbedding]] = nms map {case (matching, _) => findEmbeddingsIn(matching)}
+    embeddings.flatten
+  }
+
+  def findEmbeddingsIn(nodeMatchingSet: NodeMatchingSet): Stream[GraphEmbedding] = {
+    initialEmbeddings(nodeMatchingSet).filter(_.projection.size == nodeMatchingSet.matching.size)
+  }
+
 }
