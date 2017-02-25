@@ -24,7 +24,7 @@ trait ServiceStubForTest  extends AutoCloseable{
   }
 
   val indexWriter: BaseIndexWriter
-  val graphSearcher: NeighbourBasedSearcher with SimpleQueryBuilder
+  val graphSearcher: TruncatedSearcher with SimpleQueryBuilder
 }
 
 
@@ -44,7 +44,7 @@ trait ServiceStubLegacyNeo4J extends ServiceStubForTest {
     override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
   }
 
-  val graphSearcher = new NeighbourBasedSearcher
+  val graphSearcher = new TruncatedSearcher
     with LegacyNeighbourBaseIndexReader
     with GraphDBContext
     with ExponentialPropagation
@@ -83,7 +83,7 @@ trait ServiceStubTerrier extends ServiceStubForTest {
     override val indexName: String = s"index-nagg-r$radius-p$propagationFactor"
   }
 
-  val graphSearcher = new NeighbourBasedSearcher
+  val graphSearcher = new TruncatedSearcher
     with TerrierIndexReader
     with GraphDBContext
     with ExponentialPropagation

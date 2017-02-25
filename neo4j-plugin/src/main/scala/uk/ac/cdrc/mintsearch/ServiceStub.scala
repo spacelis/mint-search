@@ -2,7 +2,7 @@ package uk.ac.cdrc.mintsearch
 
 import org.neo4j.graphdb.GraphDatabaseService
 import uk.ac.cdrc.mintsearch.index.BaseIndexWriter
-import uk.ac.cdrc.mintsearch.search.{NeighbourBasedSearcher, SimpleQueryBuilder}
+import uk.ac.cdrc.mintsearch.search.{GraphSearcher, SimpleQueryBuilder}
 
 /**
   * This is a service holder trait.
@@ -10,7 +10,7 @@ import uk.ac.cdrc.mintsearch.search.{NeighbourBasedSearcher, SimpleQueryBuilder}
   */
 trait ServiceStub {
 
-  protected var graphSearcher: NeighbourBasedSearcher with SimpleQueryBuilder = _
+  protected var graphSearcher: GraphSearcher with SimpleQueryBuilder = _
   protected var indexWriter: BaseIndexWriter = _
 
   /**
@@ -18,7 +18,7 @@ trait ServiceStub {
     * @param gdb a graph database service
     * @return a searcher instance (singleton)
     */
-  def getSearcher(gdb: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder
+  def getSearcher(gdb: GraphDatabaseService): GraphSearcher with SimpleQueryBuilder
 
   /**
     * Get an index writer for the given graph database

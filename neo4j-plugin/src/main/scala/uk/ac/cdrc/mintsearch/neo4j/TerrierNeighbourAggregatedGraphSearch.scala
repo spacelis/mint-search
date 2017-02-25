@@ -5,11 +5,11 @@ import java.util.stream.{Stream => JStream}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.procedure.{Mode, Name, Procedure}
 import uk.ac.cdrc.mintsearch.ServiceStub
-import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NessEmbeddingEnumContext, NodeOnlyAsciiRenderer}
+import uk.ac.cdrc.mintsearch.graph.{ConnComponentEnumContext, NodeOnlyAsciiRenderer}
 import uk.ac.cdrc.mintsearch.index.BaseIndexWriter
 import uk.ac.cdrc.mintsearch.index.terrier.{TerrierIndexReader, TerrierIndexWriter}
 import uk.ac.cdrc.mintsearch.ranking.{NessNodeSimilarity, SimpleEmbeddingRanking, SimpleNodeRanking}
-import uk.ac.cdrc.mintsearch.search.{ConfR2expPropLIdx, NeighbourAggregatedAnalyzer, NeighbourBasedSearcher, SimpleQueryBuilder}
+import uk.ac.cdrc.mintsearch.search._
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
@@ -26,9 +26,9 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
     * @param gdb a graph database service
     * @return a searcher instance
     */
-  override def getSearcher(gdb: GraphDatabaseService): NeighbourBasedSearcher with SimpleQueryBuilder = {
+  override def getSearcher(gdb: GraphDatabaseService): GraphSearcher with SimpleQueryBuilder = {
     if (graphSearcher == null)
-      graphSearcher = new NeighbourBasedSearcher
+      graphSearcher = new LargePoolTruncatedSearcher
         with TerrierIndexReader
         with GraphDBContext
         with ConfR2expPropLIdx
