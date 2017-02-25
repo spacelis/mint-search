@@ -21,11 +21,11 @@ package object mintsearch {
   /**
     * A mapping from a node (by its ID) to a list of nodes (IDs)
     */
-  case class NodeMatchingSet(matching: Map[NodeId, Seq[(NodeId, Double)]]) {
-    lazy val inverse: Map[NodeId, (NodeId, Double)] = (for {
+  case class NodeMatchingSet(matching: Map[NodeId, Seq[(NodeId, Double)]])(implicit ord: Ordering[Double]) {
+    lazy val inverse: Map[NodeId, Seq[(NodeId, Double)]] = (for {
       (v, ns) <- matching.toSeq
       (n, s) <- ns
-    } yield n -> (v -> s)).toMap
+    } yield n -> (v -> s)).groupBy(_._1).map { case (n, vs) => n -> vs.map(_._2).sortBy(_._2)}
     lazy val candidates: Set[NodeId] = matching.values.flatten.map(_._1).toSet
     def removeQueryNodes(vs: Seq[NodeId]): NodeMatchingSet = NodeMatchingSet(matching.filterKeys(k => ! (vs contains k)))
     def removeCandidates(ns: Set[NodeId]): NodeMatchingSet = NodeMatchingSet(for {
