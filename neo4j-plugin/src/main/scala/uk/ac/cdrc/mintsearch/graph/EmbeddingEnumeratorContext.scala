@@ -177,7 +177,7 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
 trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
   self: GraphDBContext with NodeSimilarity with TraversalStrategy with NeighbourAwareContext =>
 
-  val nodesOnly: Boolean
+  val mini: Boolean
   /**
     * Iterate through the growing size of node matching sets.
     *
@@ -208,8 +208,8 @@ trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
         } yield nn.endNode().getId -> nn).toMap
         makeGraphEmbedding(bubbles, m)
     } filter (em => toGraphMatrix(em).connected)
-    if (nodesOnly)
-      embeddings map (em => GraphEmbedding(em.nodes, List.empty, em.projection))
+    if (mini)
+      embeddings map (em => GraphEmbedding(em.nodes.filter(n => em.projection contains n.getId), List.empty, em.projection))
     else
       embeddings
   }
