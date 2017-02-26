@@ -36,7 +36,7 @@ object ServiceStubUponNeo4JIndex extends ServiceStub {
           with SimpleEmbeddingRanking
           with TopFirstEmbeddingEnumContext
           with SimpleQueryBuilder {
-
+        override val nodesOnly: Boolean = true
         override val db: GraphDatabaseService = gdb
       }
     graphSearcher

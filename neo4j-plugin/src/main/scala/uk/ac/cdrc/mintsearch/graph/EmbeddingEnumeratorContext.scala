@@ -177,8 +177,15 @@ trait NessEmbeddingEnumContext extends EmbeddingEnumeratorContext {
 trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
   self: GraphDBContext with NodeSimilarity with TraversalStrategy with NeighbourAwareContext =>
 
+  val nodesOnly: Boolean
   /**
     * Iterate through the growing size of node matching sets.
+    *
+    * The algorithm first sort the the matching pairs in the order of best matching first.
+    * Going though the pairs and collect all pairs with both v nodes and n nodes having not been seen before.
+    * When all the v nodes have a couter part in the collection, we consider the collection to be complete
+    * and there we have a matching with best node wise matching. Though no connectivity is guaranteed.
+    *
     * @param nodeMatchingSet a node matching set
     * @return a stream of graph embeddings
     */
@@ -193,7 +200,7 @@ trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
       else
         (m._1 + c, m._1.size + 1 == nodeMatchingSet.matching.size)
     }.filter(_._2).take(1)
-    first map {case (m, _) =>
+    val embeddings = first map {case (m, _) =>
         val bubbles = (for {
           nid <- m.keySet
           n = db.getNodeById(nid)
@@ -201,6 +208,10 @@ trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
         } yield nn.endNode().getId -> nn).toMap
         makeGraphEmbedding(bubbles, m)
     } filter (em => toGraphMatrix(em).connected)
+    if (nodesOnly)
+      embeddings map (em => GraphEmbedding(em.nodes, List.empty, em.projection))
+    else
+      embeddings
   }
 
 }
