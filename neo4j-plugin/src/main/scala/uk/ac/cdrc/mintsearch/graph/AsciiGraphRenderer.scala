@@ -46,6 +46,7 @@ case class NodeOnlyAsciiRenderer(nodeProperties: Seq[String]) extends AsciiGraph
         (v, s) = embedding.projection(n.getId)
       } yield s"${n.render}->V$v [$s]") mkString " , "
       s"""# $projection
+         |${embedding.relationships.length}
          |$nodes
       """.stripMargin
     }
