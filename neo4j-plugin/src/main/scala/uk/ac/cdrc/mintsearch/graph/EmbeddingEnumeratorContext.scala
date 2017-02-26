@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch._
 import uk.ac.cdrc.mintsearch.neo4j.GraphDBContext
 import uk.ac.cdrc.mintsearch.ranking.NodeSimilarity
+import uk.ac.cdrc.mintsearch.graph.Util.toGraphMatrix
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -199,7 +200,7 @@ trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
           nn <- n.neighbours
         } yield nn.endNode().getId -> nn).toMap
         makeGraphEmbedding(bubbles, m)
-    }
+    } filter (em => toGraphMatrix(em).connected)
   }
 
 }
