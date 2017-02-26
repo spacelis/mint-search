@@ -183,6 +183,8 @@ lazy val neo4j_plugin = (project in file("neo4j-plugin")).
         exclude("org.apache.ant", "ant")
         exclude("org.eclipse.jdt", "core")
         exclude("org.apache.lucene", "lucene-snowball"),
+      "org.scalanlp" %% "breeze" % "0.12",
+      "org.scalanlp" %% "breeze-natives" % "0.12",
       "com.sun.jersey" % "jersey-core" % "1.19" % "test",
       "com.sun.jersey" % "jersey-server" % "1.19" % "test",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
