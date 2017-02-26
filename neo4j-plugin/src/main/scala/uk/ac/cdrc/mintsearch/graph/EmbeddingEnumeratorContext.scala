@@ -187,7 +187,7 @@ trait TopFirstEmbeddingEnumContext extends NessEmbeddingEnumContext {
       (v, s) <- vs
     } yield (n, (v, s))).sortBy(_._2._2)
     val first = matchQueue.toStream.scanLeft((Map.empty[NodeId, (NodeId, Double)], false)){ (m, c) =>
-      if (m._1 contains c._1)
+      if ((m._1 contains c._1) || (m._1.values.map(_._1).toSet contains c._2._1))
         (m._1, m._2)
       else
         (m._1 + c, m._1.size + 1 == nodeMatchingSet.matching.size)
