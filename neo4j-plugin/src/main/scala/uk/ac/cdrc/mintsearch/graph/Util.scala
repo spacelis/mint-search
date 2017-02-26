@@ -1,6 +1,7 @@
 package uk.ac.cdrc.mintsearch.graph
 
 import breeze.linalg._
+import breeze.numerics._
 import uk.ac.cdrc.mintsearch.NodeId
 
 import scala.annotation.tailrec
@@ -21,7 +22,7 @@ object Util {
       * Whether the graph is connected as a whole
       */
     lazy val connected: Boolean = {
-      lazy val reachableInHops: Stream[DenseMatrix[Int]] = mat #:: reachableInHops map { _ * mat}
+      lazy val reachableInHops: Stream[DenseMatrix[Int]] = mat #:: reachableInHops map { x => I(x * mat).mapValues(_.toInt) }
       val reachable = reachableInHops.take(mat.cols)
         .foldLeft(DenseMatrix.zeros[Int](mat.rows, mat.cols))(_ + _)
       (for {
