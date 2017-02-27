@@ -31,6 +31,38 @@ object Util {
     }
   }
 
+  object GraphMatrix {
+    /**
+      * Converting an embedding to matrix form
+      * @param em an embedding
+      * @return a GraphMatrix
+      */
+    def apply(em: GraphEmbedding): GraphMatrix = {
+      GraphMatrix(
+        em.nodeIds,
+        em.relationships map {r => r.getStartNode.getId -> r.getEndNode.getId}
+      )
+    }
+
+    /**
+      * Make a GraphMatrix from nodes and relationships
+      * @param nodeIds a set of node in terms of ids
+      * @param relationships a set of relationships in terms of mapping
+      * @return a GraphMatrix
+      */
+    def apply(nodeIds: Seq[NodeId], relationships: Seq[(NodeId, NodeId)]): GraphMatrix = {
+      val proj = nodeIds.zipWithIndex.toMap
+      val mat = DenseMatrix.zeros[Int](proj.size, proj.size)
+      for {
+        (s, e) <- relationships
+        if (proj contains s) && (proj contains e)
+      } {
+        mat(proj(s), proj(e)) = 1
+        mat(proj(e), proj(s)) = 1
+      }
+      GraphMatrix(mat, proj)
+    }
+  }
   /**
     * Compute a matrix to the power of n
     * @param mat a matrix
@@ -63,34 +95,4 @@ object Util {
     stepMul.takeRight(1).head
   }
 
-  /**
-    * Converting an embedding to matrix form
-    * @param em an embedding
-    * @return a GraphMatrix
-    */
-  def toGraphMatrix(em: GraphEmbedding): GraphMatrix = {
-    toGraphMatrix(
-      em.nodeIds,
-      em.relationships map {r => r.getStartNode.getId -> r.getEndNode.getId}
-    )
-  }
-
-  /**
-    * Make a GraphMatrix from nodes and relationships
-    * @param nodeIds a set of node in terms of ids
-    * @param relationships a set of relationships in terms of mapping
-    * @return a GraphMatrix
-    */
-  def toGraphMatrix(nodeIds: Seq[NodeId], relationships: Seq[(NodeId, NodeId)]): GraphMatrix = {
-    val proj = nodeIds.zipWithIndex.toMap
-    val mat = DenseMatrix.zeros[Int](proj.size, proj.size)
-    for {
-      (s, e) <- relationships
-      if (proj contains s) && (proj contains e)
-    } {
-      mat(proj(s), proj(e)) = 1
-      mat(proj(e), proj(s)) = 1
-    }
-    GraphMatrix(mat, proj)
-  }
 }

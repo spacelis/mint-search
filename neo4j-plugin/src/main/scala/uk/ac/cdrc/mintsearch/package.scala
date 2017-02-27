@@ -21,7 +21,7 @@ package object mintsearch {
   /**
     * A mapping from a node (by its ID) to a list of nodes (IDs)
     */
-  case class NodeMatchingSet(matching: Map[NodeId, Seq[(NodeId, Double)]])(implicit ord: Ordering[Double]) {
+  case class NodeMatchingSet(matching: Map[NodeId, Seq[(NodeId, Double)]])(implicit val ord: Ordering[Double]) {
     lazy val inverse: Map[NodeId, Seq[(NodeId, Double)]] = (for {
       (v, ns) <- matching.toSeq
       (n, s) <- ns
@@ -43,7 +43,9 @@ package object mintsearch {
   /**
     * A mapping from node to its weighted label set
     */
-  type GraphDoc[L] = Map[NodeId, WeightedLabelSet[L]]
+  case class GraphDoc[L](weights: Map[NodeId, WeightedLabelSet[L]], ajacency: Map[NodeId, Seq[NodeId]]) {
+
+  }
 
   /**
     * A class for adding operators to Map[String, Double] aliased to WeightedLabelSet

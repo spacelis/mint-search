@@ -33,12 +33,12 @@ class UtilSpec extends WordSpec with Matchers {
 
   "GraphMatrix" should {
     "find a connected graph contected" in {
-      val gm = toGraphMatrix(Seq(1l,2l,3l,4l), Seq(1l->2l, 2l->3l, 3l->4l, 4l->1l))
+      val gm = GraphMatrix(Seq(1l,2l,3l,4l), Seq(1l->2l, 2l->3l, 3l->4l, 4l->1l))
       gm.connected should be (true)
     }
 
     "find a un-contected graph not connected" in {
-      val gm = toGraphMatrix(Seq(1l,2l,3l,4l), Seq(1l->2l, 3l->4l))
+      val gm = GraphMatrix(Seq(1l,2l,3l,4l), Seq(1l->2l, 3l->4l))
       gm.connected should be (false)
     }
   }

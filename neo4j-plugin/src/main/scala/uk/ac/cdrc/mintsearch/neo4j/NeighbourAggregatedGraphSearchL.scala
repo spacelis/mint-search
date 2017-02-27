@@ -26,7 +26,7 @@ object ServiceStubUponNeo4JIndex extends ServiceStub {
     */
   def getSearcher(gdb: GraphDatabaseService): GraphSearcher with SimpleQueryBuilder = {
     if (graphSearcher == null)
-      graphSearcher = new LargePoolTruncatedSearcher
+      graphSearcher = new LargePoolSimpleSearcher
           with LegacyNeighbourBaseIndexReader
           with ConfR2expPropLIdx
           with GraphDBContext

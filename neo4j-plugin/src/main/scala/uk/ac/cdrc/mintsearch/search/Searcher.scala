@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import uk.ac.cdrc.mintsearch.graph._
 import uk.ac.cdrc.mintsearch.index.{BaseIndexReader, NodeMarker}
 import uk.ac.cdrc.mintsearch.neo4j._
-import uk.ac.cdrc.mintsearch.ranking.{EmbeddingRanking, NodeRanking}
+import uk.ac.cdrc.mintsearch.ranking.{EmbeddingRanking, NodeRanking, NodeRescoring}
 import uk.ac.cdrc.mintsearch.{GraphDoc, NodeMatchingSet}
 
 case class GraphSearchResult(gsq: GraphQuery, graphSnippets: IndexedSeq[GraphEmbedding], scores: IndexedSeq[Double])
@@ -17,7 +17,7 @@ trait GraphSearcher {
   def search(gsq: GraphQuery, limit: Int = 3): GraphSearchResult
 }
 
-trait TruncatedSearcher extends GraphSearcher {
+trait SimpleSearcher extends GraphSearcher {
   self: BaseIndexReader with GraphDBContext with NodeMarker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
 
   private val logger = LoggerFactory.getLogger(classOf[GraphSearcher])
@@ -26,7 +26,7 @@ trait TruncatedSearcher extends GraphSearcher {
     val analyzedQuery = analyze(gsq)
     logger.info(
       s"""query=
-         |${analyzedQuery map {case (k, v) => s"V$k => $v"} mkString "\n"}
+         |${analyzedQuery.weights map {case (k, v) => s"V$k => $v"} mkString "\n"}
          |===========""".stripMargin)
     val (graphSnippets, scores) = graphDocSearch(analyzedQuery, limit).unzip
     GraphSearchResult(gsq, graphSnippets, scores)
@@ -34,7 +34,7 @@ trait TruncatedSearcher extends GraphSearcher {
 
   def matchNodes(query: GraphDoc[L], limit: Int = Int.MaxValue): NodeMatchingSet = {
     val resultSets = for {
-      (n, wls) <- query.toIndexedSeq
+      (n, wls) <- query.weights.toIndexedSeq
     } yield searchNodes(n, wls)
 
     val nodeMatchingSet = NodeMatchingSet((for {
@@ -54,12 +54,23 @@ trait TruncatedSearcher extends GraphSearcher {
 
 }
 
-trait LargePoolTruncatedSearcher extends TruncatedSearcher {
+trait LargePoolSimpleSearcher extends SimpleSearcher {
   self: BaseIndexReader with GraphDBContext with NodeMarker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext =>
 
   override def graphDocSearch(query: GraphDoc[L], limit: Int): IndexedSeq[(GraphEmbedding, Double)] = {
-    val bufferSize = query.size * limit * 2
+    val bufferSize = query.weights.size * limit * 2
     val nodeMatchingSet = matchNodes(query, bufferSize)
+    rankGraphs(query, composeEmbeddings(nodeMatchingSet).take(bufferSize).toIndexedSeq).take(limit)
+  }
+
+}
+
+trait NeighbourEnhancedSearcher extends SimpleSearcher {
+  self: BaseIndexReader with GraphDBContext with NodeMarker with TraversalStrategy with NeighbourAwareContext with NeighbourAggregatedAnalyzer with NodeRanking with EmbeddingRanking with EmbeddingEnumeratorContext with NodeRescoring =>
+
+  override def graphDocSearch(query: GraphDoc[L], limit: Int): IndexedSeq[(GraphEmbedding, Double)] = {
+    val bufferSize = query.weights.size * limit * 2
+    val nodeMatchingSet = rescore(query, matchNodes(query, bufferSize))
     rankGraphs(query, composeEmbeddings(nodeMatchingSet).take(bufferSize).toIndexedSeq).take(limit)
   }
 

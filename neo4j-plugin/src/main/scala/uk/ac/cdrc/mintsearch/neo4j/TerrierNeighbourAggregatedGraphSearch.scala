@@ -28,7 +28,7 @@ object ServiceStubUponTerrierIndex extends ServiceStub {
     */
   override def getSearcher(gdb: GraphDatabaseService): GraphSearcher with SimpleQueryBuilder = {
     if (graphSearcher == null)
-      graphSearcher = new LargePoolTruncatedSearcher
+      graphSearcher = new LargePoolSimpleSearcher
         with TerrierIndexReader
         with GraphDBContext
         with ConfR2expPropLIdx
